@@ -146,11 +146,13 @@
     <ClCompile Include="Gfx.cpp" />
     <ClCompile Include="GfxDevice.cpp" />
     <ClCompile Include="GfxInstance.cpp" />
+    <ClCompile Include="Platform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gfx.h" />
     <ClInclude Include="GfxDevice.h" />
     <ClInclude Include="GfxInstance.h" />
+    <ClInclude Include="Platform.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

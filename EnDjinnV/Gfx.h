@@ -2,10 +2,8 @@
 
 #include "GfxInstance.h"
 #include "GfxDevice.h"
+#include "Platform.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 class Gfx
 {
@@ -15,9 +13,6 @@ public:
 private:
     const char* appName;
     GfxInstance instance;
+    Platform platform;
     GfxDevice device;
-#ifdef _WIN32
-    HINSTANCE hModule;
-    HWND hWindow;
-#endif
 };

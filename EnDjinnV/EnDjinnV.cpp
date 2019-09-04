@@ -6,6 +6,7 @@
 int main()
 {
     try {
+        std::cout << "Engine startup." << std::endl;
         Gfx gfx("EnDjinn");
         while (true) {}
     } catch (std::exception& e) {

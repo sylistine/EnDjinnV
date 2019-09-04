@@ -1,62 +1,32 @@
 #include "Gfx.h"
 
-#ifdef _WIN32
-LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg) {
-    case WM_CLOSE:
-        PostQuitMessage(0);
-        break;
-    case WM_PAINT:
-        // run(info);
-        return 0;
-    default:
-        break;
-    }
-    return (DefWindowProc(hWnd, uMsg, wParam, lParam));
-}
-#endif
 
 Gfx::Gfx(const char* appName) :
     appName(appName),
     instance(appName),
-    device(instance.GetPreferredGpu(), instance.GetPreferredGpuPropertyFamilyIdx())
+    platform(appName, instance.Get()),
+    device(instance.Get(), platform.GetSurface())
 {
-#ifdef _WIN32
-    hModule = GetModuleHandle(NULL);
-
-    WNDCLASSEX wndClass;
-    wndClass.cbSize = sizeof(WNDCLASSEX);
-    wndClass.style = CS_HREDRAW | CS_VREDRAW;
-    wndClass.lpfnWndProc = WndProc;
-    wndClass.cbClsExtra = 0;
-    wndClass.cbWndExtra = 0;
-    wndClass.hInstance = hModule;
-    wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    wndClass.lpszMenuName = NULL;
-    wndClass.lpszClassName = appName;
-    wndClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-    if (!RegisterClassEx(&wndClass)) {
-        throw std::exception("Unable to register window class.");
-    }
-
-    hWindow = CreateWindowEx(
-        0,
-        appName,
-        appName,
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        8, 8,
-        256, 256,
-        NULL,
-        NULL,
-        hModule,
-        NULL);
-    if (!hWindow) {
-        throw std::exception("Unable to create window.");
-    }
-#endif
+    VkSwapchainCreateInfoKHR swapchainCreateInfo;
+    swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchainCreateInfo.pNext = NULL;
+    swapchainCreateInfo.flags = 0;
+    swapchainCreateInfo.surface = platform.GetSurface();
+    swapchainCreateInfo.minImageCount = 2;
+    swapchainCreateInfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    swapchainCreateInfo.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+    swapchainCreateInfo.imageExtent.width = 256;
+    swapchainCreateInfo.imageExtent.height = 256;
+    swapchainCreateInfo.imageArrayLayers = 1;
+    swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    swapchainCreateInfo.queueFamilyIndexCount = 0;
+    swapchainCreateInfo.pQueueFamilyIndices = NULL;
+    swapchainCreateInfo.preTransform;
+    swapchainCreateInfo.compositeAlpha;
+    swapchainCreateInfo.presentMode;
+    swapchainCreateInfo.clipped;
+    swapchainCreateInfo.oldSwapchain;
 }
 
 
