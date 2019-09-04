@@ -16,6 +16,7 @@ public:
     GfxDevice(VkInstance vkInstance, VkSurfaceKHR surface);
     ~GfxDevice();
     VkPhysicalDevice Physical() const { return infos[preferredGpuIdx].gpu; }
+    VkDevice Logical() const { return device; }
     unsigned int GraphicsQueueIdx() const { return graphicsQueueIdx; }
     unsigned int PresentQueueIdx() const { return presentQueueIdx; }
 private:

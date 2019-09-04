@@ -12,5 +12,7 @@ public:
     ~SwapChain();
 private:
     VkFormat swapchainFormat;
+    VkSwapchainKHR swapchain;
+    unsigned int swapchainImageCount;
 };
 

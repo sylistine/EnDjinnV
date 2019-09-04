@@ -131,6 +131,15 @@ SwapChain::SwapChain(GfxDevice device, Platform platform)
         swapchainCreateInfo.queueFamilyIndexCount = 2;
         swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
     }
+
+    result = vkCreateSwapchainKHR(device.Logical(), &swapchainCreateInfo, NULL, &swapchain);
+    if (result != VK_SUCCESS) throw std::exception("Unable to create Swapchain.");
+
+    // Now that we've created the swapchain, we need a view to the GPU memory.
+    result = vkGetSwapchainImagesKHR(device.Logical(), swapchain, &swapchainImageCount, NULL);
+    if (result != VK_SUCCESS) throw std::exception("Unable ot get swapchain image count.");
+
+    // TODO: actually populate the list of `VkImage`s. Cache it.
 }
 
 
