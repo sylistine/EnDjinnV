@@ -68,6 +68,13 @@ GfxDevice::GfxDevice(VkInstance instance, VkSurfaceKHR surface)
             }
     }
     free(pSupportsPresent);
+    
+    if (graphicsQueueIdx == UINT32_MAX) {
+        throw std::exception("Unable to identify a queue family that supports graphics.");
+    }
+    if (presentQueueIdx == UINT32_MAX) {
+        throw std::exception("Unable to identify a queue family that supports present.");
+    }
 
     // Now that we have a graphics queue, we can create a logical device.
     // Any logical device in Vulkan is bound to a queue, which is bound to a queue family.

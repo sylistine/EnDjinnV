@@ -1,8 +1,9 @@
 #pragma once
 
 #include "GfxInstance.h"
-#include "GfxDevice.h"
 #include "Platform.h"
+#include "GfxDevice.h"
+#include "SwapChain.h"
 
 
 class Gfx
@@ -15,4 +16,5 @@ private:
     GfxInstance instance;
     Platform platform;
     GfxDevice device;
+    SwapChain swapChain;
 };
