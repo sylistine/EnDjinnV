@@ -148,6 +148,28 @@ namespace Djn::VkUtil
     }
 
 
+    static VkMemoryAllocateInfo MemoryAllocateInfo(
+        const void* pNext = NULL)
+    {
+        VkMemoryAllocateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        info.pNext = pNext;
+        return info;
+    }
+
+
+    static VkImageViewCreateInfo ImageViewCreateInfo(
+        const void* pNext = NULL,
+        VkImageViewCreateFlags flags = 0)
+    {
+        VkImageViewCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
+        return info;
+    }
+
+
     /*
      * Command buffer structures.
      */

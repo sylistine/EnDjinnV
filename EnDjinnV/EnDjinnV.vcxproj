@@ -161,12 +161,14 @@
     <ClCompile Include="Gfx.cpp" />
     <ClCompile Include="EnDjinnV.cpp" />
     <ClCompile Include="Platform.cpp" />
+    <ClCompile Include="DepthTexture.cpp" />
     <ClCompile Include="WindowsPlatformUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EnDjinnV.h" />
     <ClInclude Include="Gfx.h" />
     <ClInclude Include="Platform.h" />
+    <ClInclude Include="DepthTexture.h" />
     <ClInclude Include="VulkanUtil.h" />
     <ClInclude Include="WindowsPlatformUtil.h" />
   </ItemGroup>

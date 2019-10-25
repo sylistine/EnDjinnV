@@ -155,27 +155,34 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &swapchain);
     if (result != VK_SUCCESS) throw new std::exception("Unable to create swapchain");
     swapchainImages = VkUtil::GetSwapchainImages(device, swapchain);
+    swapchainImageViews.resize(swapchainImages.size());
+    for (auto i = 0u; i < swapchainImages.size(); i++)
+    {
+        auto swapchainImageViewCreateInfo = VkUtil::ImageViewCreateInfo();
+        swapchainImageViewCreateInfo.image = swapchainImages[i];
+        swapchainImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        swapchainImageViewCreateInfo.format = swapchainFormat;
+        swapchainImageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+        swapchainImageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+        swapchainImageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+        swapchainImageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+        swapchainImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        swapchainImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        swapchainImageViewCreateInfo.subresourceRange.levelCount = 1;
+        swapchainImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        swapchainImageViewCreateInfo.subresourceRange.layerCount = 1;
+        result = vkCreateImageView(device, &swapchainImageViewCreateInfo, NULL, swapchainImageViews.data());
+        if (result != VK_SUCCESS) throw new std::exception("Unable to create views to swapchain images.");
+    }
 
-    // create depth buffer
-    auto depthImageCreateInfo = VkUtil::ImageCreateInfo();
-    depthImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-    depthImageCreateInfo.format = VK_FORMAT_D16_UNORM;
-    depthImageCreateInfo.extent.width = 512;
-    depthImageCreateInfo.extent.height = 512;
-    depthImageCreateInfo.extent.depth = 1;
-    depthImageCreateInfo.mipLevels = 1;
-    depthImageCreateInfo.arrayLayers = 1;
-    depthImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    depthImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    depthImageCreateInfo.queueFamilyIndexCount = 0;
-    depthImageCreateInfo.pQueueFamilyIndices = NULL;
-    depthImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    depthImageCreateInfo.flags = 0;
+    // create depth texture
+    depthTexture = new DepthTexture(device, 512, 512, primaryGPU.memoryProperties);
+
+    
 }
 
 
 Gfx::~Gfx()
 {
-
+    delete depthTexture;
 }

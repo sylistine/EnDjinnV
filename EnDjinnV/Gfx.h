@@ -3,6 +3,8 @@
 #include <vulkan/vulkan.h>
 #include "VulkanUtil.h"
 
+#include "DepthTexture.h"
+
 namespace Djn
 {
     typedef struct PhysicalDevice
@@ -12,9 +14,12 @@ namespace Djn
             device(dev)
         {
             queueFamilyProperties = VkUtil::GetPhysicalDeviceQueueFamilyProperties(dev);
+            vkGetPhysicalDeviceMemoryProperties(dev, &memoryProperties);
         }
         VkPhysicalDevice device;
         std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+        VkPhysicalDeviceMemoryProperties memoryProperties;
+
     } PhysicalDevice;
 
     class Gfx
@@ -36,6 +41,8 @@ namespace Djn
         VkCommandBuffer cmdBuffer;
         VkSwapchainKHR swapchain;
         std::vector<VkImage> swapchainImages;
+        std::vector<VkImageView> swapchainImageViews;
         VkImage depthImage;
+        DepthTexture* depthTexture;
     };
 }
