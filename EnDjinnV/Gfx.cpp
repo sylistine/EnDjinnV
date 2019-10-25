@@ -8,9 +8,9 @@ using namespace Djn;
 
 void Gfx::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
 {
-	if (gfxInstance != NULL) throw std::exception("Gfx is already initialized.");
+    if (gfxInstance != NULL) throw std::exception("Gfx is already initialized.");
 
-	gfxInstance = new Gfx(vkInstance, surface);
+    gfxInstance = new Gfx(vkInstance, surface);
 }
 
 
@@ -21,18 +21,18 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
 {
     VkResult result;
 
-	// todo: better physical device selection.
-	primaryGPU = PhysicalDevice(VkUtil::GetDefaultPhysicalDevice(instance));
+    // todo: better physical device selection.
+    primaryGPU = PhysicalDevice(VkUtil::GetDefaultPhysicalDevice(instance));
 
-	// get surface capabilities against chosen device
-	uint32_t gfxQueueFamilyIdx;
-	uint32_t presentQueueFamilyIdx;
-	VkUtil::GetGfxAndPresentQueueFamilyIndex(
-		primaryGPU.device,
-		primaryGPU.queueFamilyProperties,
-		surface,
-		gfxQueueFamilyIdx,
-		presentQueueFamilyIdx);
+    // get surface capabilities against chosen device
+    uint32_t gfxQueueFamilyIdx;
+    uint32_t presentQueueFamilyIdx;
+    VkUtil::GetGfxAndPresentQueueFamilyIndex(
+        primaryGPU.device,
+        primaryGPU.queueFamilyProperties,
+        surface,
+        gfxQueueFamilyIdx,
+        presentQueueFamilyIdx);
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(primaryGPU.device, surface, &surfaceCapabilities);
     if (result != VK_SUCCESS) throw new std::exception("Unable to get surface capabilities.");
@@ -40,40 +40,40 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.device, surface);
     if (physicalDeviceSurfaceFormats.size() < 1) throw new std::exception("Unable to determine surface formats.");
 
-	// create logical device
-	float queuePriorities[1] = { 0.0 };
-	
+    // create logical device
+    float queuePriorities[1] = { 0.0 };
+
     auto queueCreateInfo = VkUtil::DeviceQueueCreateInfo();
-	queueCreateInfo.queueFamilyIndex = gfxQueueFamilyIdx;
-	queueCreateInfo.queueCount = 1;
+    queueCreateInfo.queueFamilyIndex = gfxQueueFamilyIdx;
+    queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = queuePriorities;
 
-	std::vector<const char*> deviceExtensions;
-	deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	
+    std::vector<const char*> deviceExtensions;
+    deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
     auto deviceCreateInfo = VkUtil::DeviceCreateInfo();
-	deviceCreateInfo.queueCreateInfoCount = 1;
-	deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-	deviceCreateInfo.enabledLayerCount = 0;
-	deviceCreateInfo.ppEnabledLayerNames = NULL;
-	deviceCreateInfo.enabledExtensionCount = deviceExtensions.size();
-	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
-	deviceCreateInfo.pEnabledFeatures = NULL;
-	result = vkCreateDevice(primaryGPU.device, &deviceCreateInfo, NULL, &device);
-	if (result != VK_SUCCESS) throw new std::exception("Unable to create logical device.");
+    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+    deviceCreateInfo.enabledLayerCount = 0;
+    deviceCreateInfo.ppEnabledLayerNames = NULL;
+    deviceCreateInfo.enabledExtensionCount = deviceExtensions.size();
+    deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+    deviceCreateInfo.pEnabledFeatures = NULL;
+    result = vkCreateDevice(primaryGPU.device, &deviceCreateInfo, NULL, &device);
+    if (result != VK_SUCCESS) throw new std::exception("Unable to create logical device.");
 
-	// create command pools
-	auto commandPoolCreateInfo = VkUtil::CommandPoolCreateInfo();
-	commandPoolCreateInfo.queueFamilyIndex = gfxQueueFamilyIdx;
-	result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &cmdPool);
-	if (result != VK_SUCCESS) throw new std::exception("Unable to create command pool.");
+    // create command pools
+    auto commandPoolCreateInfo = VkUtil::CommandPoolCreateInfo();
+    commandPoolCreateInfo.queueFamilyIndex = gfxQueueFamilyIdx;
+    result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &cmdPool);
+    if (result != VK_SUCCESS) throw new std::exception("Unable to create command pool.");
 
-	// create a command buffer.
-	auto commandBufferAllocInfo = VkUtil::CommandBufferAllocateInfo();
-	commandBufferAllocInfo.commandPool = cmdPool;
-	commandBufferAllocInfo.commandBufferCount = 1;
-	result = vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &cmdBuffer);
-	if (result != VK_SUCCESS) throw new std::exception("Unable to allocate command buffer.");
+    // create a command buffer.
+    auto commandBufferAllocInfo = VkUtil::CommandBufferAllocateInfo();
+    commandBufferAllocInfo.commandPool = cmdPool;
+    commandBufferAllocInfo.commandBufferCount = 1;
+    result = vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &cmdBuffer);
+    if (result != VK_SUCCESS) throw new std::exception("Unable to allocate command buffer.");
 
     // Do swapchain setup.
     VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
@@ -110,7 +110,7 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     } else {
         surfaceTransformFlagBits = surfaceCapabilities.currentTransform;
     }
-    
+
     VkCompositeAlphaFlagBitsKHR compositeAlpha;
     VkCompositeAlphaFlagBitsKHR compositeAlphaFlags[4] = {
         VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
@@ -125,8 +125,8 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
         }
     }
 
-	// create swapchain
-	auto swapchainCreateInfo = VkUtil::SwapChainCreateInfo();
+    // create swapchain
+    auto swapchainCreateInfo = VkUtil::SwapChainCreateInfo();
     swapchainCreateInfo.surface = surface;
     swapchainCreateInfo.minImageCount = surfaceCapabilities.minImageCount;
     swapchainCreateInfo.imageFormat = swapchainFormat;
@@ -156,7 +156,7 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     if (result != VK_SUCCESS) throw new std::exception("Unable to create swapchain");
     swapchainImages = VkUtil::GetSwapchainImages(device, swapchain);
 
-	// create depth buffer
+    // create depth buffer
     auto depthImageCreateInfo = VkUtil::ImageCreateInfo();
     depthImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
     depthImageCreateInfo.format = VK_FORMAT_D16_UNORM;
@@ -165,7 +165,7 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     depthImageCreateInfo.extent.depth = 1;
     depthImageCreateInfo.mipLevels = 1;
     depthImageCreateInfo.arrayLayers = 1;
-    depthImageCreateInfo.samples = 1;
+    depthImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     depthImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     depthImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     depthImageCreateInfo.queueFamilyIndexCount = 0;
