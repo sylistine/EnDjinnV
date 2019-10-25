@@ -2,22 +2,15 @@
 
 #include <vulkan/vulkan.h>
 
-typedef struct
-{
-    int x;
-    int y;
-    int w;
-    int h;
-} WindowRect;
-
-class Platform
-{
-public:
-    Platform(const char* appName, VkInstance instance);
-    ~Platform();
-    WindowRect GetWindowRect() const { return windowRect; }
-    VkSurfaceKHR GetSurface() const { return surface; }
-private:
-    WindowRect windowRect;
-    VkSurfaceKHR surface;
-};
+namespace Djn {
+	class Platform {
+	public:
+		Platform(const char* appName);
+		~Platform();
+		VkInstance GetVkInstance() const { return vkInstance; }
+		VkSurfaceKHR GetSurface() const { return surface; }
+	private:
+		VkInstance vkInstance;
+		VkSurfaceKHR surface;
+	};
+}
