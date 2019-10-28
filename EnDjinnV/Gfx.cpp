@@ -251,7 +251,7 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
 
 Gfx::~Gfx()
 {
-    vkDestroyRenderPass(device, &renderPass, NULL);
+    vkDestroyRenderPass(device, renderPass, NULL);
 
     delete depthTexture;
 
