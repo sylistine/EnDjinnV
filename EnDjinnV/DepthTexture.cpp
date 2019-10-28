@@ -16,8 +16,7 @@ DepthTexture::DepthTexture(
 {
     VkResult result;
 
-    auto imageCreateInfo = VkUtil::ImageCreateInfo();
-    imageCreateInfo.pNext = NULL;
+    auto imageCreateInfo = VkUtil::ImageCI();
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
     imageCreateInfo.format = VK_FORMAT_D16_UNORM;
     imageCreateInfo.extent.width = initialWidth;
@@ -51,7 +50,7 @@ DepthTexture::DepthTexture(
     }
     if (memoryTypeIdx == UINT32_MAX) throw new std::exception("Couldn't locate required memory type idx.");
 
-    auto memoryAllocateInfo = VkUtil::MemoryAllocateInfo();
+    auto memoryAllocateInfo = VkUtil::MemoryAllocInfo();
     memoryAllocateInfo.allocationSize = memoryReqs.size;
     memoryAllocateInfo.memoryTypeIndex = memoryTypeIdx;
 
@@ -61,7 +60,7 @@ DepthTexture::DepthTexture(
     result = vkBindImageMemory(device, image, memory, 0);
     if (result != VK_SUCCESS) throw new std::exception("Unable to bind Image to DeviceMemory.");
 
-    auto viewCreateInfo = VkUtil::ImageViewCreateInfo();
+    auto viewCreateInfo = VkUtil::ImageViewCI();
     viewCreateInfo.image = image;
     viewCreateInfo.format = VK_FORMAT_D16_UNORM;
     viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;

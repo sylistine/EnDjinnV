@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "VulkanUtil.h"
+
 #ifdef _WIN32
 #include "WindowsPlatformUtil.h"
 #endif
@@ -24,7 +26,7 @@ Platform::Platform(const char* appName)
     vkAppInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     vkAppInfo.pApplicationName = appName;
     vkAppInfo.pEngineName = appName;
-    vkAppInfo.apiVersion = VK_API_VERSION_1_1;
+    vkAppInfo.apiVersion = VK_API_VERSION_1_0;
 
     std::vector<const char*> vkExtensions;
     vkExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
@@ -32,13 +34,12 @@ Platform::Platform(const char* appName)
     vkExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
 
-    VkInstanceCreateInfo vkInstanceCreateInfo = {};
-    vkInstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    vkInstanceCreateInfo.pApplicationInfo = &vkAppInfo;
-    vkInstanceCreateInfo.enabledExtensionCount = vkExtensions.size();
-    vkInstanceCreateInfo.ppEnabledExtensionNames = vkExtensions.data();
+    auto vkInstanceCI = VkUtil::InstanceCI();
+    vkInstanceCI.pApplicationInfo = &vkAppInfo;
+    vkInstanceCI.enabledExtensionCount = vkExtensions.size();
+    vkInstanceCI.ppEnabledExtensionNames = vkExtensions.data();
 
-    VkResult vkResult = vkCreateInstance(&vkInstanceCreateInfo, NULL, &vkInstance);
+    VkResult vkResult = vkCreateInstance(&vkInstanceCI, NULL, &vkInstance);
 
     // Create vulkan surface from platform window.
 #ifdef _WIN32

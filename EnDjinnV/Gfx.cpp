@@ -43,34 +43,34 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     // create logical device
     float queuePriorities[1] = { 0.0 };
 
-    auto queueCreateInfo = VkUtil::DeviceQueueCreateInfo();
-    queueCreateInfo.queueFamilyIndex = gfxQueueFamilyIdx;
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = queuePriorities;
+    auto deviceQueueCI = VkUtil::DeviceQueueCI();
+    deviceQueueCI.queueFamilyIndex = gfxQueueFamilyIdx;
+    deviceQueueCI.queueCount = 1;
+    deviceQueueCI.pQueuePriorities = queuePriorities;
 
     std::vector<const char*> deviceExtensions;
     deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-    auto deviceCreateInfo = VkUtil::DeviceCreateInfo();
-    deviceCreateInfo.queueCreateInfoCount = 1;
-    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-    deviceCreateInfo.enabledLayerCount = 0;
-    deviceCreateInfo.ppEnabledLayerNames = NULL;
-    deviceCreateInfo.enabledExtensionCount = deviceExtensions.size();
-    deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
-    deviceCreateInfo.pEnabledFeatures = NULL;
-    result = vkCreateDevice(primaryGPU.device, &deviceCreateInfo, NULL, &device);
+    auto deviceCI = VkUtil::DeviceCI();
+    deviceCI.queueCreateInfoCount = 1;
+    deviceCI.pQueueCreateInfos = &deviceQueueCI;
+    deviceCI.enabledLayerCount = 0;
+    deviceCI.ppEnabledLayerNames = NULL;
+    deviceCI.enabledExtensionCount = deviceExtensions.size();
+    deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
+    deviceCI.pEnabledFeatures = NULL;
+    result = vkCreateDevice(primaryGPU.device, &deviceCI, NULL, &device);
     if (result != VK_SUCCESS) throw new std::exception("Unable to create logical device.");
 
     // create command pools
-    auto commandPoolCreateInfo = VkUtil::CommandPoolCreateInfo();
-    commandPoolCreateInfo.queueFamilyIndex = gfxQueueFamilyIdx;
-    result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &cmdPool);
+    auto commandPoolCI = VkUtil::CommandPoolCI();
+    commandPoolCI.queueFamilyIndex = gfxQueueFamilyIdx;
+    result = vkCreateCommandPool(device, &commandPoolCI, NULL, &cmdPool);
     if (result != VK_SUCCESS) throw new std::exception("Unable to create command pool.");
 
     // create a command buffer.
     cmdBufferCount = 1;
-    auto commandBufferAllocInfo = VkUtil::CommandBufferAllocateInfo();
+    auto commandBufferAllocInfo = VkUtil::CommandBufferAllocInfo();
     commandBufferAllocInfo.commandPool = cmdPool;
     commandBufferAllocInfo.commandBufferCount = cmdBufferCount;
     result = vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &cmdBuffer);
@@ -127,52 +127,52 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     }
 
     // create swapchain
-    auto swapchainCreateInfo = VkUtil::SwapChainCreateInfo();
-    swapchainCreateInfo.surface = surface;
-    swapchainCreateInfo.minImageCount = surfaceCapabilities.minImageCount;
-    swapchainCreateInfo.imageFormat = swapchainFormat;
-    swapchainCreateInfo.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-    swapchainCreateInfo.imageExtent = swapchainExtent;
-    swapchainCreateInfo.imageArrayLayers = 1;
-    swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapchainCreateInfo.preTransform = surfaceTransformFlagBits;
-    swapchainCreateInfo.compositeAlpha = compositeAlpha;
-    swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; // Default, always supported.
-    swapchainCreateInfo.clipped = true;
-    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+    auto swapchainCI = VkUtil::SwapChainCI();
+    swapchainCI.surface = surface;
+    swapchainCI.minImageCount = surfaceCapabilities.minImageCount;
+    swapchainCI.imageFormat = swapchainFormat;
+    swapchainCI.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+    swapchainCI.imageExtent = swapchainExtent;
+    swapchainCI.imageArrayLayers = 1;
+    swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapchainCI.preTransform = surfaceTransformFlagBits;
+    swapchainCI.compositeAlpha = compositeAlpha;
+    swapchainCI.presentMode = VK_PRESENT_MODE_FIFO_KHR; // Default, always supported.
+    swapchainCI.clipped = true;
+    swapchainCI.oldSwapchain = VK_NULL_HANDLE;
 
-    swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    swapchainCreateInfo.queueFamilyIndexCount = 0;
-    swapchainCreateInfo.pQueueFamilyIndices = NULL;
+    swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    swapchainCI.queueFamilyIndexCount = 0;
+    swapchainCI.pQueueFamilyIndices = NULL;
     if (gfxQueueFamilyIdx != presentQueueFamilyIdx) {
         uint32_t queueFamilyIndices[2] = {
             gfxQueueFamilyIdx,
             presentQueueFamilyIdx };
-        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        swapchainCreateInfo.queueFamilyIndexCount = 2;
-        swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+        swapchainCI.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        swapchainCI.queueFamilyIndexCount = 2;
+        swapchainCI.pQueueFamilyIndices = queueFamilyIndices;
     }
 
-    result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &swapchain);
+    result = vkCreateSwapchainKHR(device, &swapchainCI, NULL, &swapchain);
     if (result != VK_SUCCESS) throw new std::exception("Unable to create swapchain");
     swapchainImages = VkUtil::GetSwapchainImages(device, swapchain);
     swapchainImageViews.resize(swapchainImages.size());
     for (auto i = 0u; i < swapchainImages.size(); i++)
     {
-        auto swapchainImageViewCreateInfo = VkUtil::ImageViewCreateInfo();
-        swapchainImageViewCreateInfo.image = swapchainImages[i];
-        swapchainImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        swapchainImageViewCreateInfo.format = swapchainFormat;
-        swapchainImageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-        swapchainImageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-        swapchainImageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-        swapchainImageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-        swapchainImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        swapchainImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-        swapchainImageViewCreateInfo.subresourceRange.levelCount = 1;
-        swapchainImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-        swapchainImageViewCreateInfo.subresourceRange.layerCount = 1;
-        result = vkCreateImageView(device, &swapchainImageViewCreateInfo, NULL, &swapchainImageViews[i]);
+        auto swapchainImageViewCI = VkUtil::ImageViewCI();
+        swapchainImageViewCI.image = swapchainImages[i];
+        swapchainImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        swapchainImageViewCI.format = swapchainFormat;
+        swapchainImageViewCI.components.r = VK_COMPONENT_SWIZZLE_R;
+        swapchainImageViewCI.components.g = VK_COMPONENT_SWIZZLE_G;
+        swapchainImageViewCI.components.b = VK_COMPONENT_SWIZZLE_B;
+        swapchainImageViewCI.components.a = VK_COMPONENT_SWIZZLE_A;
+        swapchainImageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        swapchainImageViewCI.subresourceRange.baseMipLevel = 0;
+        swapchainImageViewCI.subresourceRange.levelCount = 1;
+        swapchainImageViewCI.subresourceRange.baseArrayLayer = 0;
+        swapchainImageViewCI.subresourceRange.layerCount = 1;
+        result = vkCreateImageView(device, &swapchainImageViewCI, NULL, &swapchainImageViews[i]);
         if (result != VK_SUCCESS) throw new std::exception("Unable to create views to swapchain images.");
     }
 
@@ -181,7 +181,41 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
 
     // TODO: setup uniform buffer for MVP, time, audio data...?
 
-
+    /*
+     * Create VkRenderPass *INCOMPLETE*
+     */
+    const uint32_t attachmentDescCount = 2;
+    VkAttachmentDescription attachmentDescs[attachmentDescCount];
+    attachmentDescs[0] = VkUtil::AttachmentDescription();
+    attachmentDescs[0].format = swapchainFormat;
+    attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    attachmentDescs[1] = VkUtil::AttachmentDescription();
+    attachmentDescs[1].format = VK_FORMAT_D16_UNORM;
+    attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    auto renderpassCI = VkUtil::RenderPassCI();
+    renderpassCI.attachmentCount = attachmentDescCount;
+    renderpassCI.pAttachments = attachmentDescs;
+    //fill out
+    VkRenderPass renderPass;
+    vkCreateRenderPass(device, &renderpassCI, NULL, &renderPass);
+    auto cmdBufferInheritanceInfo = VkUtil::CommandBufferInheritanceInfo();
+    cmdBufferInheritanceInfo.renderPass = renderPass;
+    //fillout
+    auto cmdBufferBeginInfo = VkUtil::CommandBufferBeginInfo();
+    cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
+    vkBeginCommandBuffer(cmdBuffer, &cmdBufferBeginInfo);
 }
 
 

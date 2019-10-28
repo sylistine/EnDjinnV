@@ -102,7 +102,18 @@ namespace Djn::VkUtil
     /*
      * Vulkan Initialization structures.
      */
-    static VkDeviceQueueCreateInfo DeviceQueueCreateInfo(
+    static VkInstanceCreateInfo InstanceCI(
+        const void* pNext = NULL,
+        VkInstanceCreateFlags flags = 0)
+    {
+        VkInstanceCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
+        return info;
+    }
+
+    static VkDeviceQueueCreateInfo DeviceQueueCI(
         const void* pNext = NULL,
         VkDeviceQueueCreateFlags flags = 0)
     {
@@ -114,7 +125,7 @@ namespace Djn::VkUtil
     }
 
 
-    static VkDeviceCreateInfo DeviceCreateInfo(
+    static VkDeviceCreateInfo DeviceCI(
         const void* pNext = NULL,
         VkDeviceCreateFlags flags = 0)
     {
@@ -126,7 +137,7 @@ namespace Djn::VkUtil
     }
 
 
-    static VkSwapchainCreateInfoKHR SwapChainCreateInfo(
+    static VkSwapchainCreateInfoKHR SwapChainCI(
         const void* pNext = NULL,
         VkSwapchainCreateFlagsKHR flags = 0)
     {
@@ -138,7 +149,7 @@ namespace Djn::VkUtil
     }
 
 
-    static VkImageCreateInfo ImageCreateInfo(
+    static VkImageCreateInfo ImageCI(
         const void* pNext = NULL)
     {
         VkImageCreateInfo info = {};
@@ -148,7 +159,7 @@ namespace Djn::VkUtil
     }
 
 
-    static VkMemoryAllocateInfo MemoryAllocateInfo(
+    static VkMemoryAllocateInfo MemoryAllocInfo(
         const void* pNext = NULL)
     {
         VkMemoryAllocateInfo info = {};
@@ -158,7 +169,7 @@ namespace Djn::VkUtil
     }
 
 
-    static VkImageViewCreateInfo ImageViewCreateInfo(
+    static VkImageViewCreateInfo ImageViewCI(
         const void* pNext = NULL,
         VkImageViewCreateFlags flags = 0)
     {
@@ -173,7 +184,7 @@ namespace Djn::VkUtil
     /*
      * Command buffer structures.
      */
-    static VkCommandPoolCreateInfo CommandPoolCreateInfo(
+    static VkCommandPoolCreateInfo CommandPoolCI(
         const void* pNext = NULL,
         VkCommandPoolCreateFlags flags = 0)
     {
@@ -185,7 +196,7 @@ namespace Djn::VkUtil
     }
 
 
-    static VkCommandBufferAllocateInfo CommandBufferAllocateInfo(
+    static VkCommandBufferAllocateInfo CommandBufferAllocInfo(
         const void* pNext = NULL)
     {
         VkCommandBufferAllocateInfo info = {};
@@ -205,7 +216,7 @@ namespace Djn::VkUtil
     }
 
 
-    static VkCommandBufferBeginInfo CmdBufferBeginInfo(
+    static VkCommandBufferBeginInfo CommandBufferBeginInfo(
         const void* pNext = NULL,
         VkCommandBufferUsageFlags flags = 0)
     {
@@ -214,5 +225,26 @@ namespace Djn::VkUtil
         info.pNext = NULL;
         info.flags = 0;
         return info;
+    }
+
+
+    static VkRenderPassCreateInfo RenderPassCI(
+        const void* pNext = NULL,
+        VkRenderPassCreateFlags flags = 0)
+    {
+        VkRenderPassCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
+        return info;
+    }
+
+
+    static VkAttachmentDescription AttachmentDescription(
+        VkAttachmentDescriptionFlags flags = 0)
+    {
+        VkAttachmentDescription desc = {};
+        desc.flags = flags;
+        return desc;
     }
 }
