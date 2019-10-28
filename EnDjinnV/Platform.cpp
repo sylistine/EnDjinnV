@@ -54,5 +54,6 @@ Platform::Platform(const char* appName)
 
 Platform::~Platform()
 {
-
+    vkDestroySurfaceKHR(vkInstance, surface, NULL);
+    vkDestroyInstance(vkInstance, NULL);
 }

@@ -14,6 +14,7 @@ namespace Djn
             VkPhysicalDeviceMemoryProperties memoryTypeIdx);
         ~DepthTexture();
     private:
+        VkDevice device;
         VkImage image;
         VkDeviceMemory memory;
         VkImageView view;

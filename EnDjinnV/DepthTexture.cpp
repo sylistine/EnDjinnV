@@ -11,7 +11,8 @@ DepthTexture::DepthTexture(
     VkDevice device,
     uint32_t initialWidth,
     uint32_t initialHeight,
-    VkPhysicalDeviceMemoryProperties memoryProperties)
+    VkPhysicalDeviceMemoryProperties memoryProperties) :
+    device(device)
 {
     VkResult result;
 
@@ -78,4 +79,7 @@ DepthTexture::DepthTexture(
 
 
 DepthTexture::~DepthTexture()
-{}
+{
+    vkDestroyImageView(device, view, NULL);
+    vkFreeMemory(device, memory, NULL);
+}

@@ -69,9 +69,10 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     if (result != VK_SUCCESS) throw new std::exception("Unable to create command pool.");
 
     // create a command buffer.
+    cmdBufferCount = 1;
     auto commandBufferAllocInfo = VkUtil::CommandBufferAllocateInfo();
     commandBufferAllocInfo.commandPool = cmdPool;
-    commandBufferAllocInfo.commandBufferCount = 1;
+    commandBufferAllocInfo.commandBufferCount = cmdBufferCount;
     result = vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &cmdBuffer);
     if (result != VK_SUCCESS) throw new std::exception("Unable to allocate command buffer.");
 
@@ -171,18 +172,31 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
         swapchainImageViewCreateInfo.subresourceRange.levelCount = 1;
         swapchainImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         swapchainImageViewCreateInfo.subresourceRange.layerCount = 1;
-        result = vkCreateImageView(device, &swapchainImageViewCreateInfo, NULL, swapchainImageViews.data());
+        result = vkCreateImageView(device, &swapchainImageViewCreateInfo, NULL, &swapchainImageViews[i]);
         if (result != VK_SUCCESS) throw new std::exception("Unable to create views to swapchain images.");
     }
 
     // create depth texture
     depthTexture = new DepthTexture(device, 512, 512, primaryGPU.memoryProperties);
 
-    
+    // TODO: setup uniform buffer for MVP, time, audio data...?
+
+
 }
 
 
 Gfx::~Gfx()
 {
     delete depthTexture;
+
+    for (auto i = 0u; i < swapchainImages.size(); i++) {
+        vkDestroyImageView(device, swapchainImageViews[i], NULL);
+    }
+    vkDestroySwapchainKHR(device, swapchain, NULL);
+
+    VkCommandBuffer cmdBufferList[] = { cmdBuffer };
+    vkFreeCommandBuffers(device, cmdPool, cmdBufferCount, cmdBufferList);
+    vkDestroyCommandPool(device, cmdPool, NULL);
+
+    vkDestroyDevice(device, NULL);
 }

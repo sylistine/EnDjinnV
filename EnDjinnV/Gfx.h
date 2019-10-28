@@ -38,6 +38,7 @@ namespace Djn
         // Logical device data.
         VkDevice device;
         VkCommandPool cmdPool;
+        uint32_t cmdBufferCount;
         VkCommandBuffer cmdBuffer;
         VkSwapchainKHR swapchain;
         std::vector<VkImage> swapchainImages;
