@@ -45,5 +45,6 @@ namespace Djn
         std::vector<VkImageView> swapchainImageViews;
         VkImage depthImage;
         DepthTexture* depthTexture;
+        VkRenderPass renderPass;
     };
 }

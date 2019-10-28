@@ -182,7 +182,7 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     // TODO: setup uniform buffer for MVP, time, audio data...?
 
     /*
-     * Create VkRenderPass *INCOMPLETE*
+     * Create VkRenderPass
      */
     const uint32_t attachmentDescCount = 2;
     VkAttachmentDescription attachmentDescs[attachmentDescCount];
@@ -204,12 +204,42 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference colorReference = {};
+    colorReference.attachment = 0;
+    colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthReference = {};
+    depthReference.attachment = 1;
+    depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpassDesc = {};
+    subpassDesc.flags = 0;
+    subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassDesc.inputAttachmentCount = 0;
+    subpassDesc.pInputAttachments = NULL;
+    subpassDesc.colorAttachmentCount = 1;
+    subpassDesc.pColorAttachments = &colorReference;
+    subpassDesc.pResolveAttachments = NULL;
+    subpassDesc.pDepthStencilAttachment = &depthReference;
+    subpassDesc.preserveAttachmentCount = 0;
+    subpassDesc.pPreserveAttachments = NULL;
+    
     auto renderpassCI = VkUtil::RenderPassCI();
     renderpassCI.attachmentCount = attachmentDescCount;
     renderpassCI.pAttachments = attachmentDescs;
-    //fill out
-    VkRenderPass renderPass;
+    renderpassCI.subpassCount = 1;
+    renderpassCI.pSubpasses = &subpassDesc;
+    renderpassCI.dependencyCount = 0;
+    renderpassCI.pDependencies = NULL;
+
     vkCreateRenderPass(device, &renderpassCI, NULL, &renderPass);
+
+    // TODO: setup shader workflow.
+
+    /*
+     * Build command buffer *INCOMPLETE*
+     */
     auto cmdBufferInheritanceInfo = VkUtil::CommandBufferInheritanceInfo();
     cmdBufferInheritanceInfo.renderPass = renderPass;
     //fillout
@@ -221,6 +251,8 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
 
 Gfx::~Gfx()
 {
+    vkDestroyRenderPass(device, &renderPass, NULL);
+
     delete depthTexture;
 
     for (auto i = 0u; i < swapchainImages.size(); i++) {
