@@ -8,13 +8,13 @@
 int main()
 {
 #if defined(_WIN32) && defined(NDEBUG)
-    ShowWindow(GetConsoleWindow(), SW_HIDE);
+    //ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
     auto appName = "Vulkan Exploration";
     try {
         Djn::Platform platform(appName);
-        Djn::Gfx::Initialize(platform.GetVkInstance(), platform.GetSurface());
+        Djn::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
         while (true) {}
     } catch (const std::exception& e) {
         // TODO: setup that logger again.

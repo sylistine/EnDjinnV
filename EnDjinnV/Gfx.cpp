@@ -4,20 +4,20 @@
 
 #include <vector>
 
-using namespace Djn;
+using namespace Djn::Gfx;
 
-void Gfx::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
+void Manager::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
 {
     if (gfxInstance != NULL) throw std::exception("Gfx is already initialized.");
 
-    gfxInstance = new Gfx(vkInstance, surface);
+    gfxInstance = new Manager(vkInstance, surface);
 }
 
 
-Gfx* Gfx::gfxInstance = NULL;
+Manager* Manager::gfxInstance = NULL;
 
 
-Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), surface(surface)
+Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), surface(surface)
 {
     VkResult result;
 
@@ -236,6 +236,10 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
     vkCreateRenderPass(device, &renderpassCI, NULL, &renderPass);
 
     // TODO: setup shader workflow.
+    // in the mean time...
+    shaderc::Compiler compiler;
+    auto vertexShader = CompileShader(compiler, BasicVertexShader);
+    auto fragmentShader = CompileShader(compiler, BasicFragmentShader);
 
     /*
      * Build command buffer *INCOMPLETE*
@@ -249,7 +253,7 @@ Gfx::Gfx(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), su
 }
 
 
-Gfx::~Gfx()
+Manager::~Manager()
 {
     vkDestroyRenderPass(device, renderPass, NULL);
 
@@ -265,4 +269,49 @@ Gfx::~Gfx()
     vkDestroyCommandPool(device, cmdPool, NULL);
 
     vkDestroyDevice(device, NULL);
+}
+
+
+shaderc::SpvCompilationResult Manager::CompileShader(
+    shaderc::Compiler& compiler,
+    Shader shader)
+{
+    auto program= compiler.CompileGlslToSpv(
+        shader.shader, strlen(shader.shader),
+        shader.kind, shader.name);
+    if (program.GetCompilationStatus() != shaderc_compilation_status_success) {
+        switch (program.GetCompilationStatus()) {
+        case shaderc_compilation_status_invalid_stage:
+            std::cout << "Stage deduction failure." << std::endl;
+            break;
+        case shaderc_compilation_status_compilation_error:
+            std::cout << "Compilation error." << std::endl;
+            break;
+        case shaderc_compilation_status_internal_error:
+            std::cout << "Unexpected internal failure." << std::endl;
+            break;
+        case shaderc_compilation_status_null_result_object:
+            std::cout << "null result object." << std::endl;
+            break;
+        case shaderc_compilation_status_invalid_assembly:
+            std::cout << "Invalid assembly." << std::endl;
+            break;
+        case shaderc_compilation_status_validation_error:
+            std::cout << "Validation error." << std::endl;
+            break;
+        case shaderc_compilation_status_transformation_error:
+            std::cout << "Transformation error." << std::endl;
+            break;
+        case shaderc_compilation_status_success:
+        default:
+            std::cout << "Compilation success!" << std::endl;
+            break;
+        }
+        if (program.GetNumErrors() > 0) {
+            std::cout << "Detected errors during vertex program compilation." << std::endl;
+            std::cout << program.GetErrorMessage() << std::endl;
+        }
+        throw new std::exception("error compiling shaders");
+    }
+    return program;
 }

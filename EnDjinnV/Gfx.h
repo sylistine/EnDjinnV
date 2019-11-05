@@ -1,11 +1,14 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <shaderc/shaderc.hpp>
+
 #include "VulkanUtil.h"
+#include "Shader.h"
 
 #include "DepthTexture.h"
 
-namespace Djn
+namespace Djn::Gfx
 {
     typedef struct PhysicalDevice
     {
@@ -22,14 +25,14 @@ namespace Djn
 
     } PhysicalDevice;
 
-    class Gfx
+    class Manager
     {
     public:
         static void Initialize(VkInstance vkInstance, VkSurfaceKHR surface);
     private:
-        static Gfx* gfxInstance;
-        Gfx(VkInstance vkInstance, VkSurfaceKHR surface);
-        ~Gfx();
+        static Manager* gfxInstance;
+        Manager(VkInstance vkInstance, VkSurfaceKHR surface);
+        ~Manager();
 
         VkInstance instance;
         VkSurfaceKHR surface;
@@ -46,5 +49,9 @@ namespace Djn
         VkImage depthImage;
         DepthTexture* depthTexture;
         VkRenderPass renderPass;
+
+        shaderc::SpvCompilationResult CompileShader(
+            shaderc::Compiler& compiler,
+            Shader shader);
     };
 }

@@ -1,11 +1,18 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <vulkan/spirv.h>
+#include <shaderc/shaderc.h>
 
 #include <vector>
 
 namespace Djn::VkUtil
 {
+    static void LoadShader()
+    {
+        
+    }
+
     inline std::vector<VkPhysicalDevice> GetPhysicalDevices(const VkInstance& instance)
     {
         uint32_t count;
