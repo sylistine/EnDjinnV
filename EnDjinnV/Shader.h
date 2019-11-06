@@ -19,18 +19,20 @@ namespace Djn::Gfx
 
     typedef struct VertexShader : public Shader
     {
-        VertexShader(const char* name, const char* shader) : Shader(name, shader, shaderc_vertex_shader)
+        VertexShader(const char* name, const char* shader)
+            : Shader(name, shader, shaderc_vertex_shader)
         {};
-    };
+    } VertexShader;
 
     typedef struct FragmentShader : public Shader
     {
-        FragmentShader(const char* name, const char* shader) : Shader(name, shader, shaderc_fragment_shader)
+        FragmentShader(const char* name, const char* shader)
+            : Shader(name, shader, shaderc_fragment_shader)
         {};
-    };
+    } FragmentShader;
 
 
-    Shader BasicVertexShader = VertexShader(
+    static Shader BasicVertexShader = VertexShader(
         "Basic Vertex Shader",
         "#version 400\n"
         "#extension GL_ARB_separate_shader_objects : enable\n"
@@ -45,7 +47,7 @@ namespace Djn::Gfx
         "   outColor = inColor;\n"
         "   gl_Position = myBufferVals.mvp * pos;\n"
         "}\n");
-    Shader BasicFragmentShader = FragmentShader(
+    static Shader BasicFragmentShader = FragmentShader(
         "Basic Fragment Shader",
         "#version 400\n"
         "#extension GL_ARB_separate_shader_objects : enable\n"

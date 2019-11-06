@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{D10C31FE-B417-4011-8ADE-D73EE4074C3C}</ProjectGuid>
     <RootNamespace>EnDjinnV</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -70,20 +70,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Lib32;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Lib32;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\dev\SDKs\VulkanSDK\1.1.114.0\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

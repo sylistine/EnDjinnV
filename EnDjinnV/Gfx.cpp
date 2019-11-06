@@ -276,7 +276,7 @@ shaderc::SpvCompilationResult Manager::CompileShader(
     shaderc::Compiler& compiler,
     Shader shader)
 {
-    auto program= compiler.CompileGlslToSpv(
+    auto program = compiler.CompileGlslToSpv(
         shader.shader, strlen(shader.shader),
         shader.kind, shader.name);
     if (program.GetCompilationStatus() != shaderc_compilation_status_success) {
