@@ -10,7 +10,7 @@ namespace Djn::VkUtil
 {
     static void LoadShader()
     {
-        
+
     }
 
     inline std::vector<VkPhysicalDevice> GetPhysicalDevices(const VkInstance& instance)
@@ -267,5 +267,15 @@ namespace Djn::VkUtil
         info.pNext = pNext;
         info.flags = flags;
         return info;
+    }
+
+    static VkPipelineShaderStageCreateInfo PipelineShaderStageCI(
+        const void* pNext = NULL,
+        VkPipelineShaderStageCreateFlags flags = 0)
+    {
+        VkPipelineShaderStageCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
     }
 }

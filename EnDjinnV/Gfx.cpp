@@ -246,12 +246,24 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     vsModuleCI.pCode = vertexShader.data();
     result = vkCreateShaderModule(device, &vsModuleCI, NULL, &vertexShaderModule);
     if (result != VK_SUCCESS) throw new std::exception("Unable to create vertex shader module.");
-    
+    auto vsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
+    vsPipelineShaderStageCI.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vsPipelineShaderStageCI.module = vertexShaderModule;
+    vsPipelineShaderStageCI.pName = "main";
+    vsPipelineShaderStageCI.pSpecializationInfo = NULL;
+
     auto fsModuleCI = VkUtil::ShaderModuleCI();
     fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
     fsModuleCI.pCode = fragmentShader.data();
     result = vkCreateShaderModule(device, &fsModuleCI, NULL, &fragmentShaderModule);
     if (result != VK_SUCCESS) throw new std::exception("Unable to create fragment shader module.");
+    auto fsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
+    fsPipelineShaderStageCI.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fsPipelineShaderStageCI.module = fragmentShaderModule;
+    fsPipelineShaderStageCI.pName = "main";
+    fsPipelineShaderStageCI.pSpecializationInfo = NULL;
+    
+    
 
     /*
      * Build command buffer *INCOMPLETE*
