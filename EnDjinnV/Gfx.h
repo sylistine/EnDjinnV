@@ -49,8 +49,10 @@ namespace Djn::Gfx
         VkImage depthImage;
         DepthTexture* depthTexture;
         VkRenderPass renderPass;
+        VkShaderModule vertexShaderModule;
+        VkShaderModule fragmentShaderModule;
 
-        shaderc::SpvCompilationResult CompileShader(
+        std::vector<unsigned int> CompileShader(
             shaderc::Compiler& compiler,
             Shader shader);
     };

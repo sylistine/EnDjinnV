@@ -241,6 +241,18 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     auto vertexShader = CompileShader(compiler, BasicVertexShader);
     auto fragmentShader = CompileShader(compiler, BasicFragmentShader);
 
+    auto vsModuleCI = VkUtil::ShaderModuleCI();
+    vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
+    vsModuleCI.pCode = vertexShader.data();
+    result = vkCreateShaderModule(device, &vsModuleCI, NULL, &vertexShaderModule);
+    if (result != VK_SUCCESS) throw new std::exception("Unable to create vertex shader module.");
+    
+    auto fsModuleCI = VkUtil::ShaderModuleCI();
+    fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
+    fsModuleCI.pCode = fragmentShader.data();
+    result = vkCreateShaderModule(device, &fsModuleCI, NULL, &fragmentShaderModule);
+    if (result != VK_SUCCESS) throw new std::exception("Unable to create fragment shader module.");
+
     /*
      * Build command buffer *INCOMPLETE*
      */
@@ -255,6 +267,8 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
 
 Manager::~Manager()
 {
+    vkDestroyShaderModule(device, fragmentShaderModule, NULL);
+    vkDestroyShaderModule(device, vertexShaderModule, NULL);
     vkDestroyRenderPass(device, renderPass, NULL);
 
     delete depthTexture;
@@ -272,7 +286,7 @@ Manager::~Manager()
 }
 
 
-shaderc::SpvCompilationResult Manager::CompileShader(
+std::vector<unsigned int> Manager::CompileShader(
     shaderc::Compiler& compiler,
     Shader shader)
 {
@@ -313,5 +327,10 @@ shaderc::SpvCompilationResult Manager::CompileShader(
         }
         throw new std::exception("error compiling shaders");
     }
-    return program;
+    std::vector<unsigned int> data;
+    for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++)         {
+        data.push_back(*it);
+    }
+
+    return data;
 }

@@ -235,6 +235,9 @@ namespace Djn::VkUtil
     }
 
 
+    /*
+     * Render Pipeline State Structures
+     */
     static VkRenderPassCreateInfo RenderPassCI(
         const void* pNext = NULL,
         VkRenderPassCreateFlags flags = 0)
@@ -253,5 +256,16 @@ namespace Djn::VkUtil
         VkAttachmentDescription desc = {};
         desc.flags = flags;
         return desc;
+    }
+
+    static VkShaderModuleCreateInfo ShaderModuleCI(
+        const void* pNext = NULL,
+        VkShaderModuleCreateFlags flags = 0)
+    {
+        VkShaderModuleCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
+        return info;
     }
 }
