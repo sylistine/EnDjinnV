@@ -277,5 +277,6 @@ namespace Djn::VkUtil
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         info.pNext = pNext;
         info.flags = flags;
+        return info;
     }
 }

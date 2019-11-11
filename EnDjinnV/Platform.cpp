@@ -40,6 +40,7 @@ Platform::Platform(const char* appName)
     vkInstanceCI.ppEnabledExtensionNames = vkExtensions.data();
 
     VkResult vkResult = vkCreateInstance(&vkInstanceCI, NULL, &vkInstance);
+    if (vkResult != VK_SUCCESS) throw std::exception("Unable to create vulkan instance.");
 
     // Create vulkan surface from platform window.
 #ifdef _WIN32
@@ -49,6 +50,7 @@ Platform::Platform(const char* appName)
     surfaceCreateInfo.hinstance = XPlat::Windows::GetModuleInstanceHandle();
     surfaceCreateInfo.hwnd = XPlat::Windows::GetWindowHandle();
     vkResult = vkCreateWin32SurfaceKHR(vkInstance, &surfaceCreateInfo, NULL, &surface);
+    if (vkResult != VK_SUCCESS) throw std::exception("Unable to create Win32 surface.");
 #endif
 }
 

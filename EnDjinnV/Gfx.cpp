@@ -35,10 +35,10 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
         presentQueueFamilyIdx);
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(primaryGPU.device, surface, &surfaceCapabilities);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to get surface capabilities.");
+    if (result != VK_SUCCESS) throw std::exception("Unable to get surface capabilities.");
     auto physicalDeviceSurfacePresentModes = VkUtil::GetPhysicalDeviceSurfacePresentModes(primaryGPU.device, surface);
     auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.device, surface);
-    if (physicalDeviceSurfaceFormats.size() < 1) throw new std::exception("Unable to determine surface formats.");
+    if (physicalDeviceSurfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
 
     // create logical device
     float queuePriorities[1] = { 0.0 };
@@ -60,13 +60,13 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
     deviceCI.pEnabledFeatures = NULL;
     result = vkCreateDevice(primaryGPU.device, &deviceCI, NULL, &device);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to create logical device.");
+    if (result != VK_SUCCESS) throw std::exception("Unable to create logical device.");
 
     // create command pools
     auto commandPoolCI = VkUtil::CommandPoolCI();
     commandPoolCI.queueFamilyIndex = gfxQueueFamilyIdx;
     result = vkCreateCommandPool(device, &commandPoolCI, NULL, &cmdPool);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to create command pool.");
+    if (result != VK_SUCCESS) throw std::exception("Unable to create command pool.");
 
     // create a command buffer.
     cmdBufferCount = 1;
@@ -74,7 +74,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     commandBufferAllocInfo.commandPool = cmdPool;
     commandBufferAllocInfo.commandBufferCount = cmdBufferCount;
     result = vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &cmdBuffer);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to allocate command buffer.");
+    if (result != VK_SUCCESS) throw std::exception("Unable to allocate command buffer.");
 
     // Do swapchain setup.
     VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
@@ -154,7 +154,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     }
 
     result = vkCreateSwapchainKHR(device, &swapchainCI, NULL, &swapchain);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to create swapchain");
+    if (result != VK_SUCCESS) throw std::exception("Unable to create swapchain");
     swapchainImages = VkUtil::GetSwapchainImages(device, swapchain);
     swapchainImageViews.resize(swapchainImages.size());
     for (auto i = 0u; i < swapchainImages.size(); i++)
@@ -173,7 +173,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
         swapchainImageViewCI.subresourceRange.baseArrayLayer = 0;
         swapchainImageViewCI.subresourceRange.layerCount = 1;
         result = vkCreateImageView(device, &swapchainImageViewCI, NULL, &swapchainImageViews[i]);
-        if (result != VK_SUCCESS) throw new std::exception("Unable to create views to swapchain images.");
+        if (result != VK_SUCCESS) throw std::exception("Unable to create views to swapchain images.");
     }
 
     // create depth texture
@@ -245,7 +245,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
     vsModuleCI.pCode = vertexShader.data();
     result = vkCreateShaderModule(device, &vsModuleCI, NULL, &vertexShaderModule);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to create vertex shader module.");
+    if (result != VK_SUCCESS) throw std::exception("Unable to create vertex shader module.");
     auto vsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
     vsPipelineShaderStageCI.stage = VK_SHADER_STAGE_VERTEX_BIT;
     vsPipelineShaderStageCI.module = vertexShaderModule;
@@ -256,7 +256,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
     fsModuleCI.pCode = fragmentShader.data();
     result = vkCreateShaderModule(device, &fsModuleCI, NULL, &fragmentShaderModule);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to create fragment shader module.");
+    if (result != VK_SUCCESS) throw std::exception("Unable to create fragment shader module.");
     auto fsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
     fsPipelineShaderStageCI.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     fsPipelineShaderStageCI.module = fragmentShaderModule;
@@ -337,7 +337,7 @@ std::vector<unsigned int> Manager::CompileShader(
             std::cout << "Detected errors during vertex program compilation." << std::endl;
             std::cout << program.GetErrorMessage() << std::endl;
         }
-        throw new std::exception("error compiling shaders");
+        throw std::exception("error compiling shaders");
     }
     std::vector<unsigned int> data;
     for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++)         {
