@@ -43,7 +43,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     // create logical device
     float queuePriorities[1] = { 0.0 };
 
-    auto deviceQueueCI = VkUtil::DeviceQueueCI();
+    VkUtil::DeviceQueueCI deviceQueueCI;
     deviceQueueCI.queueFamilyIndex = gfxQueueFamilyIdx;
     deviceQueueCI.queueCount = 1;
     deviceQueueCI.pQueuePriorities = queuePriorities;
@@ -51,7 +51,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     std::vector<const char*> deviceExtensions;
     deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-    auto deviceCI = VkUtil::DeviceCI();
+    VkUtil::DeviceCI deviceCI;
     deviceCI.queueCreateInfoCount = 1;
     deviceCI.pQueueCreateInfos = &deviceQueueCI;
     deviceCI.enabledLayerCount = 0;

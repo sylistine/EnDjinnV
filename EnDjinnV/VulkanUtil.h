@@ -109,39 +109,43 @@ namespace Djn::VkUtil
     /*
      * Vulkan Initialization structures.
      */
-    static VkInstanceCreateInfo InstanceCI(
-        const void* pNext = NULL,
-        VkInstanceCreateFlags flags = 0)
-    {
-        VkInstanceCreateInfo info = {};
-        info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        info.pNext = pNext;
-        info.flags = flags;
-        return info;
-    }
-
-    static VkDeviceQueueCreateInfo DeviceQueueCI(
-        const void* pNext = NULL,
-        VkDeviceQueueCreateFlags flags = 0)
-    {
-        VkDeviceQueueCreateInfo info = {};
-        info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        info.pNext = pNext;
-        info.flags = flags;
-        return info;
-    }
+     typedef struct InstanceCI : public VkInstanceCreateInfo
+     {
+     public:
+         InstanceCI(const void* pNext, VkInstanceCreateFlags flags)
+         {
+             this->sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+             this->pNext = pNext;
+             this->flags = flags;
+         }
+         InstanceCI() : InstanceCI(NULL, 0) {}
+     } InstanceCI;
 
 
-    static VkDeviceCreateInfo DeviceCI(
-        const void* pNext = NULL,
-        VkDeviceCreateFlags flags = 0)
-    {
-        VkDeviceCreateInfo info = {};
-        info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        info.pNext = pNext;
-        info.flags = flags;
-        return info;
-    }
+     typedef struct DeviceQueueCI : public VkDeviceQueueCreateInfo
+     {
+     public:
+         DeviceQueueCI(const void* pNext, VkDeviceQueueCreateFlags flags)
+         {
+             this->sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+             this->pNext = pNext;
+             this->flags = flags;
+         }
+         DeviceQueueCI() : DeviceQueueCI(NULL, 0) {}
+     } DeviceQueueCI;
+
+
+     typedef struct DeviceCI : public VkDeviceCreateInfo
+     {
+     public:
+         DeviceCI(const void* pNext, VkDeviceCreateFlags flags)
+         {
+             this->sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+             this->pNext = pNext;
+             this->flags = flags;
+         }
+         DeviceCI() : DeviceCI(NULL, 0) {}
+     } DeviceCI;
 
 
     static VkSwapchainCreateInfoKHR SwapChainCI(
