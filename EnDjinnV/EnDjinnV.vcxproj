@@ -162,15 +162,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CommandBuffer.cpp" />
+    <ClCompile Include="CommandPool.cpp" />
+    <ClCompile Include="Device.cpp" />
     <ClCompile Include="Gfx.cpp" />
     <ClCompile Include="EnDjinnV.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Platform.cpp" />
     <ClCompile Include="DepthTexture.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="WindowsPlatformUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandBuffer.h" />
+    <ClInclude Include="CommandPool.h" />
+    <ClInclude Include="Device.h" />
     <ClInclude Include="EnDjinnV.h" />
     <ClInclude Include="Gfx.h" />
     <ClInclude Include="Mesh.h" />
@@ -178,6 +185,7 @@
     <ClInclude Include="DepthTexture.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="SwapChain.h" />
     <ClInclude Include="VulkanUtil.h" />
     <ClInclude Include="WindowsPlatformUtil.h" />
   </ItemGroup>

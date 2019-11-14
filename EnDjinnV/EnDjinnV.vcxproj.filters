@@ -16,11 +16,14 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{93204018-a617-4319-8bb3-61f13dcb08d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Gfx">
+      <UniqueIdentifier>{9bb9d382-5f9e-46b5-88a1-9567ac181ece}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Gfx">
+      <UniqueIdentifier>{57133d60-d453-4965-a8e0-94e807f19773}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Gfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Platform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,24 +33,33 @@
     <ClCompile Include="EnDjinnV.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Gfx.cpp">
+      <Filter>Source Files\Gfx</Filter>
+    </ClCompile>
     <ClCompile Include="DepthTexture.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>Source Files\Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandPool.cpp">
+      <Filter>Source Files\Gfx</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>Source Files\Gfx</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files\Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Gfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Platform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WindowsPlatformUtil.h">
@@ -56,16 +68,34 @@
     <ClInclude Include="EnDjinnV.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DepthTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Gfx.h">
+      <Filter>Header Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthTexture.h">
+      <Filter>Header Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
+      <Filter>Header Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanUtil.h">
+      <Filter>Header Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>Header Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandPool.h">
+      <Filter>Header Files\Gfx</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
+      <Filter>Header Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
