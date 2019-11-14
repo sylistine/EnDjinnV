@@ -4,6 +4,10 @@
 
 namespace Djn::Gfx
 {
+    /// Device and other graphics objects own Gpu allocations.
+    /// When destroyed, they are required to free anything they own.
+    /// On the rhs of a move, they relenquish ownership without freeing.
+    /// On the lhs of a move, they free any owned memory before receiving new ownership.
     class Device
     {
     public:
