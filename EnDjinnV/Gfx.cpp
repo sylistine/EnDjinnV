@@ -6,40 +6,9 @@
 
 using namespace Djn::Gfx;
 
-void Manager::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
+
+Device::Device(uint32_t gfxQueueFamilyIdx, VkPhysicalDevice physicalDevice)
 {
-    if (gfxInstance != NULL) throw std::exception("Gfx is already initialized.");
-
-    gfxInstance = new Manager(vkInstance, surface);
-}
-
-
-Manager* Manager::gfxInstance = NULL;
-
-
-Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), surface(surface)
-{
-    VkResult result;
-
-    // todo: better physical device selection.
-    primaryGPU = PhysicalDevice(VkUtil::GetDefaultPhysicalDevice(instance));
-
-    // get surface capabilities against chosen device
-    uint32_t gfxQueueFamilyIdx;
-    uint32_t presentQueueFamilyIdx;
-    VkUtil::GetGfxAndPresentQueueFamilyIndex(
-        primaryGPU.device,
-        primaryGPU.queueFamilyProperties,
-        surface,
-        gfxQueueFamilyIdx,
-        presentQueueFamilyIdx);
-    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(primaryGPU.device, surface, &surfaceCapabilities);
-    if (result != VK_SUCCESS) throw std::exception("Unable to get surface capabilities.");
-    auto physicalDeviceSurfacePresentModes = VkUtil::GetPhysicalDeviceSurfacePresentModes(primaryGPU.device, surface);
-    auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.device, surface);
-    if (physicalDeviceSurfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
-
     // create logical device
     float queuePriorities[1] = { 0.0 };
 
@@ -59,28 +28,69 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     deviceCI.enabledExtensionCount = deviceExtensions.size();
     deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
     deviceCI.pEnabledFeatures = NULL;
-    result = vkCreateDevice(primaryGPU.device, &deviceCI, NULL, &device);
+    VkResult result = vkCreateDevice(physicalDevice, &deviceCI, NULL, &vkDevice);
     if (result != VK_SUCCESS) throw std::exception("Unable to create logical device.");
 
-    // create command pools
+    inited = true;
+}
+
+
+Device::~Device()
+{
+    if (!inited) return;
+    
+    vkDestroyDevice(vkDevice, NULL);
+}
+
+
+CommandPool::CommandPool(VkDevice device, uint32_t gfxQueueFamilyIdx) : vkDevice(device)
+{
     auto commandPoolCI = VkUtil::CommandPoolCI();
     commandPoolCI.queueFamilyIndex = gfxQueueFamilyIdx;
-    result = vkCreateCommandPool(device, &commandPoolCI, NULL, &cmdPool);
+    VkResult result = vkCreateCommandPool(vkDevice, &commandPoolCI, NULL, &vkCommandPool);
     if (result != VK_SUCCESS) throw std::exception("Unable to create command pool.");
 
-    // create a command buffer.
-    cmdBufferCount = 1;
+    inited = true;
+}
+
+
+CommandPool::~CommandPool()
+{
+    if (!inited) return;
+    
+    vkDestroyCommandPool(vkDevice, vkCommandPool, NULL);
+}
+
+
+CommandBuffer::CommandBuffer(VkDevice device, VkCommandPool cmdPool) :
+    vkDevice(device), vkCmdPool(cmdPool)
+{
+    count = 1;
     auto commandBufferAllocInfo = VkUtil::CommandBufferAllocInfo();
-    commandBufferAllocInfo.commandPool = cmdPool;
-    commandBufferAllocInfo.commandBufferCount = cmdBufferCount;
-    result = vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &cmdBuffer);
+    commandBufferAllocInfo.commandPool = vkCmdPool;
+    commandBufferAllocInfo.commandBufferCount = count;
+    VkResult result = vkAllocateCommandBuffers(vkDevice, &commandBufferAllocInfo, &vkCommandBuffer);
     if (result != VK_SUCCESS) throw std::exception("Unable to allocate command buffer.");
 
+    inited = true;
+}
+
+
+CommandBuffer::~CommandBuffer()
+{
+    if (!inited) return;
+
+    VkCommandBuffer cmdBufferList[] = { vkCommandBuffer };
+    vkFreeCommandBuffers(vkDevice, vkCmdPool, count, cmdBufferList);
+}
+
+
+Swapchain::Swapchain(VkDevice device, VkSurfaceKHR surface, VkFormat format,
+    VkSurfaceCapabilitiesKHR surfaceCapabilities,
+    std::vector<uint32_t> queueFamilyIndices) :
+    vkDevice(device)
+{
     // Do swapchain setup.
-    VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
-    if (physicalDeviceSurfaceFormats[0].format == VK_FORMAT_UNDEFINED) {
-        swapchainFormat = VK_FORMAT_B8G8R8A8_UNORM;
-    }
 
     VkExtent2D swapchainExtent;
     // width and height are either both 0xFFFFFFFF, or both not 0xFFFFFFFF.
@@ -130,7 +140,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     auto swapchainCI = VkUtil::SwapChainCI();
     swapchainCI.surface = surface;
     swapchainCI.minImageCount = surfaceCapabilities.minImageCount;
-    swapchainCI.imageFormat = swapchainFormat;
+    swapchainCI.imageFormat = format;
     swapchainCI.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
     swapchainCI.imageExtent = swapchainExtent;
     swapchainCI.imageArrayLayers = 1;
@@ -141,28 +151,26 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     swapchainCI.clipped = true;
     swapchainCI.oldSwapchain = VK_NULL_HANDLE;
 
-    swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    swapchainCI.queueFamilyIndexCount = 0;
-    swapchainCI.pQueueFamilyIndices = NULL;
-    if (gfxQueueFamilyIdx != presentQueueFamilyIdx) {
-        uint32_t queueFamilyIndices[2] = {
-            gfxQueueFamilyIdx,
-            presentQueueFamilyIdx };
+    if (queueFamilyIndices.size() > 0) {
         swapchainCI.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        swapchainCI.queueFamilyIndexCount = 2;
-        swapchainCI.pQueueFamilyIndices = queueFamilyIndices;
+        swapchainCI.queueFamilyIndexCount = queueFamilyIndices.size();
+        swapchainCI.pQueueFamilyIndices = queueFamilyIndices.data();
+    } else {
+        swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swapchainCI.queueFamilyIndexCount = 0;
+        swapchainCI.pQueueFamilyIndices = NULL;
     }
 
-    result = vkCreateSwapchainKHR(device, &swapchainCI, NULL, &swapchain);
+    VkResult result = vkCreateSwapchainKHR(vkDevice, &swapchainCI, NULL, &vkSwapchain);
     if (result != VK_SUCCESS) throw std::exception("Unable to create swapchain");
-    swapchainImages = VkUtil::GetSwapchainImages(device, swapchain);
+
+    swapchainImages = VkUtil::GetSwapchainImages(vkDevice, vkSwapchain);
     swapchainImageViews.resize(swapchainImages.size());
-    for (auto i = 0u; i < swapchainImages.size(); i++)
-    {
+    for (auto i = 0u; i < swapchainImages.size(); i++) {
         auto swapchainImageViewCI = VkUtil::ImageViewCI();
         swapchainImageViewCI.image = swapchainImages[i];
         swapchainImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        swapchainImageViewCI.format = swapchainFormat;
+        swapchainImageViewCI.format = format;
         swapchainImageViewCI.components.r = VK_COMPONENT_SWIZZLE_R;
         swapchainImageViewCI.components.g = VK_COMPONENT_SWIZZLE_G;
         swapchainImageViewCI.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -172,12 +180,80 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
         swapchainImageViewCI.subresourceRange.levelCount = 1;
         swapchainImageViewCI.subresourceRange.baseArrayLayer = 0;
         swapchainImageViewCI.subresourceRange.layerCount = 1;
-        result = vkCreateImageView(device, &swapchainImageViewCI, NULL, &swapchainImageViews[i]);
-        if (result != VK_SUCCESS) throw std::exception("Unable to create views to swapchain images.");
+        result = vkCreateImageView(vkDevice, &swapchainImageViewCI, NULL, &swapchainImageViews[i]);
+        if (result != VK_SUCCESS) {
+            vkDestroySwapchainKHR(vkDevice, vkSwapchain, NULL);
+            throw std::exception("Unable to create views to swapchain images.");
+        }
     }
 
+    inited = true;
+}
+
+
+Swapchain::~Swapchain()
+{
+    if (!inited) return;
+
+    for (auto i = 0u; i < swapchainImages.size(); i++) {
+        vkDestroyImageView(vkDevice, swapchainImageViews[i], NULL);
+    }
+    vkDestroySwapchainKHR(vkDevice, vkSwapchain, NULL);
+}
+
+
+void Manager::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
+{
+    if (gfxInstance != NULL) throw std::exception("Gfx is already initialized.");
+
+    gfxInstance = new Manager(vkInstance, surface);
+}
+
+
+Manager* Manager::gfxInstance = NULL;
+
+
+Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), surface(surface)
+{
+    VkResult result;
+
+    // todo: better physical device selection.
+    primaryGPU = PhysicalDevice(VkUtil::GetDefaultPhysicalDevice(instance));
+
+    // get surface capabilities against chosen device
+    uint32_t gfxQueueFamilyIdx;
+    uint32_t presentQueueFamilyIdx;
+    VkUtil::GetGfxAndPresentQueueFamilyIndex(
+        primaryGPU.device,
+        primaryGPU.queueFamilyProperties,
+        surface,
+        gfxQueueFamilyIdx,
+        presentQueueFamilyIdx);
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(primaryGPU.device, surface, &surfaceCapabilities);
+    if (result != VK_SUCCESS) throw std::exception("Unable to get surface capabilities.");
+    
+    auto physicalDeviceSurfacePresentModes = VkUtil::GetPhysicalDeviceSurfacePresentModes(primaryGPU.device, surface);
+    auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.device, surface);
+    if (physicalDeviceSurfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
+    VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
+    if (swapchainFormat == VK_FORMAT_UNDEFINED) {
+        swapchainFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    }
+
+    device = Device(gfxQueueFamilyIdx, primaryGPU.device);
+    cmdPool = CommandPool(device.Get(), gfxQueueFamilyIdx);
+    cmdBuffer = CommandBuffer(device.Get(), cmdPool.Get());
+    std::vector<uint32_t> queueFamilyIndices;
+    if (gfxQueueFamilyIdx != presentQueueFamilyIdx) {
+        queueFamilyIndices.push_back(gfxQueueFamilyIdx);
+        queueFamilyIndices.push_back(presentQueueFamilyIdx);
+    }
+    swapchain = Swapchain(device.Get(), surface, swapchainFormat,
+        surfaceCapabilities, queueFamilyIndices);
+
     // create depth texture
-    depthTexture = new DepthTexture(device, 512, 512, primaryGPU.memoryProperties);
+    depthTexture = new DepthTexture(device.Get(), 512, 512, primaryGPU.memoryProperties);
 
     // TODO: setup uniform buffer for MVP, time, audio data...?
 
@@ -233,7 +309,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     renderpassCI.dependencyCount = 0;
     renderpassCI.pDependencies = NULL;
 
-    vkCreateRenderPass(device, &renderpassCI, NULL, &renderPass);
+    vkCreateRenderPass(device.Get(), &renderpassCI, NULL, &renderPass);
 
     // TODO: setup shader workflow.
     // in the mean time...
@@ -244,7 +320,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     auto vsModuleCI = VkUtil::ShaderModuleCI();
     vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
     vsModuleCI.pCode = vertexShader.data();
-    result = vkCreateShaderModule(device, &vsModuleCI, NULL, &vertexShaderModule);
+    result = vkCreateShaderModule(device.Get(), &vsModuleCI, NULL, &vertexShaderModule);
     if (result != VK_SUCCESS) throw std::exception("Unable to create vertex shader module.");
     auto vsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
     vsPipelineShaderStageCI.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -255,7 +331,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     auto fsModuleCI = VkUtil::ShaderModuleCI();
     fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
     fsModuleCI.pCode = fragmentShader.data();
-    result = vkCreateShaderModule(device, &fsModuleCI, NULL, &fragmentShaderModule);
+    result = vkCreateShaderModule(device.Get(), &fsModuleCI, NULL, &fragmentShaderModule);
     if (result != VK_SUCCESS) throw std::exception("Unable to create fragment shader module.");
     auto fsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
     fsPipelineShaderStageCI.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -273,28 +349,17 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     //fillout
     auto cmdBufferBeginInfo = VkUtil::CommandBufferBeginInfo();
     cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
-    vkBeginCommandBuffer(cmdBuffer, &cmdBufferBeginInfo);
+    vkBeginCommandBuffer(cmdBuffer.Get(), &cmdBufferBeginInfo);
 }
 
 
 Manager::~Manager()
 {
-    vkDestroyShaderModule(device, fragmentShaderModule, NULL);
-    vkDestroyShaderModule(device, vertexShaderModule, NULL);
-    vkDestroyRenderPass(device, renderPass, NULL);
+    vkDestroyShaderModule(device.Get(), fragmentShaderModule, NULL);
+    vkDestroyShaderModule(device.Get(), vertexShaderModule, NULL);
+    vkDestroyRenderPass(device.Get(), renderPass, NULL);
 
     delete depthTexture;
-
-    for (auto i = 0u; i < swapchainImages.size(); i++) {
-        vkDestroyImageView(device, swapchainImageViews[i], NULL);
-    }
-    vkDestroySwapchainKHR(device, swapchain, NULL);
-
-    VkCommandBuffer cmdBufferList[] = { cmdBuffer };
-    vkFreeCommandBuffers(device, cmdPool, cmdBufferCount, cmdBufferList);
-    vkDestroyCommandPool(device, cmdPool, NULL);
-
-    vkDestroyDevice(device, NULL);
 }
 
 

@@ -48,17 +48,27 @@ DepthTexture::DepthTexture(
         }
         typeBits >>= 1;
     }
-    if (memoryTypeIdx == UINT32_MAX) throw new std::exception("Couldn't locate required memory type idx.");
+    if (memoryTypeIdx == UINT32_MAX) {
+        vkDestroyImage(device, image, NULL);
+        throw new std::exception("Couldn't locate required memory type idx.");
+    }
 
     auto memoryAllocateInfo = VkUtil::MemoryAllocInfo();
     memoryAllocateInfo.allocationSize = memoryReqs.size;
     memoryAllocateInfo.memoryTypeIndex = memoryTypeIdx;
 
     result = vkAllocateMemory(device, &memoryAllocateInfo, NULL, &memory);
-    if (result != VK_SUCCESS) throw new std::exception("Couldn't allocate memory for image.");
+    if (result != VK_SUCCESS) {
+        vkDestroyImage(device, image, NULL);
+        throw new std::exception("Couldn't allocate memory for image.");
+    }
 
     result = vkBindImageMemory(device, image, memory, 0);
-    if (result != VK_SUCCESS) throw new std::exception("Unable to bind Image to DeviceMemory.");
+    if (result != VK_SUCCESS) {
+        vkFreeMemory(device, memory, NULL);
+        vkDestroyImage(device, image, NULL);
+        throw new std::exception("Unable to bind Image to DeviceMemory.");
+    }
 
     auto viewCreateInfo = VkUtil::ImageViewCI();
     viewCreateInfo.image = image;
@@ -73,7 +83,12 @@ DepthTexture::DepthTexture(
     viewCreateInfo.subresourceRange.baseArrayLayer = 0;
     viewCreateInfo.subresourceRange.layerCount = 1;
     viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    vkCreateImageView(device, &viewCreateInfo, NULL, &view);
+    result = vkCreateImageView(device, &viewCreateInfo, NULL, &view);
+    if (result != VK_SUCCESS) {
+        vkFreeMemory(device, memory, NULL);
+        vkDestroyImage(device, image, NULL);
+        throw new std::exception("Unable to create Image image view.");
+    }
 }
 
 
@@ -81,4 +96,5 @@ DepthTexture::~DepthTexture()
 {
     vkDestroyImageView(device, view, NULL);
     vkFreeMemory(device, memory, NULL);
+    vkDestroyImage(device, image, NULL);
 }
