@@ -34,4 +34,5 @@ void CommandBuffer::FreeDeviceMemory()
 
     VkCommandBuffer cmdBufferList[] = { vkCommandBuffer };
     vkFreeCommandBuffers(vkDevice, vkCmdPool, count, cmdBufferList);
+    inited = false;
 }
