@@ -47,11 +47,12 @@ namespace Djn::Gfx
         CommandPool cmdPool;
         CommandBuffer cmdBuffer;
         Swapchain swapchain;
-        VkImage depthImage;
         DepthTexture* depthTexture;
+        VkSemaphore imageAcquiredSemaphore;
         VkRenderPass renderPass;
         VkShaderModule vertexShaderModule;
         VkShaderModule fragmentShaderModule;
+        VkFramebuffer* framebuffer;
 
         std::vector<unsigned int> CompileShader(
             shaderc::Compiler& compiler,

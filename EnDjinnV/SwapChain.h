@@ -39,7 +39,18 @@ namespace Djn::Gfx
             }
             return *this;
         }
-        VkSwapchainKHR Get() const { return vkSwapchain; }
+        VkSwapchainKHR GetSwapchainKHR() const { return vkSwapchain; }
+        uint32_t GetImageCount() const { return swapchainImages.size(); }
+        VkImage GetImage(uint32_t idx) const
+        {
+            if (idx < 0 || idx >= GetImageCount()) throw std::exception("Argument out of range exception.");
+            return swapchainImages[idx];
+        }
+        VkImageView GetImageView(uint32_t idx) const
+        {
+            if (idx < 0 || idx >= GetImageCount()) throw std::exception("Argument out of range exception.");
+            return swapchainImageViews[idx];
+        }
     private:
         bool inited = false;
         VkDevice vkDevice;

@@ -41,6 +41,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     auto physicalDeviceSurfacePresentModes = VkUtil::GetPhysicalDeviceSurfacePresentModes(primaryGPU.device, surface);
     auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.device, surface);
     if (physicalDeviceSurfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
+    
     VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
     if (swapchainFormat == VK_FORMAT_UNDEFINED) {
         swapchainFormat = VK_FORMAT_B8G8R8A8_UNORM;
@@ -65,6 +66,20 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     /*
      * Create VkRenderPass
      */
+    auto semaphoreCI = VkUtil::SemaphoreCI();
+    result = vkCreateSemaphore(device.Get(), &semaphoreCI, NULL, &imageAcquiredSemaphore);
+    if (result != VK_SUCCESS) throw std::exception("Unable to create semaphore for image acquisition.");
+    
+    uint32_t bufferIdx;
+    result = vkAcquireNextImageKHR(
+        device.Get(),
+        swapchain.GetSwapchainKHR(),
+        UINT64_MAX,
+        imageAcquiredSemaphore,
+        VK_NULL_HANDLE,
+        &bufferIdx);
+
+
     const uint32_t attachmentDescCount = 2;
     VkAttachmentDescription attachmentDescs[attachmentDescCount];
     attachmentDescs[0] = VkUtil::AttachmentDescription();
@@ -114,7 +129,10 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     renderpassCI.dependencyCount = 0;
     renderpassCI.pDependencies = NULL;
 
-    vkCreateRenderPass(device.Get(), &renderpassCI, NULL, &renderPass);
+    result = vkCreateRenderPass(device.Get(), &renderpassCI, NULL, &renderPass);
+    if (result != VK_SUCCESS) {
+        vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+    }
 
     // TODO: setup shader workflow.
     // in the mean time...
@@ -126,25 +144,60 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
     vsModuleCI.pCode = vertexShader.data();
     result = vkCreateShaderModule(device.Get(), &vsModuleCI, NULL, &vertexShaderModule);
-    if (result != VK_SUCCESS) throw std::exception("Unable to create vertex shader module.");
+    if (result != VK_SUCCESS) {
+        vkDestroyRenderPass(device.Get(), renderPass, NULL);
+        vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+        throw std::exception("Unable to create vertex shader module.");
+    }
+
+    auto fsModuleCI = VkUtil::ShaderModuleCI();
+    fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
+    fsModuleCI.pCode = fragmentShader.data();
+    result = vkCreateShaderModule(device.Get(), &fsModuleCI, NULL, &fragmentShaderModule);
+    if (result != VK_SUCCESS) {
+        vkDestroyShaderModule(device.Get(), vertexShaderModule, NULL);
+        vkDestroyRenderPass(device.Get(), renderPass, NULL);
+        vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+        throw std::exception("Unable to create fragment shader module.");
+    }
+
     auto vsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
     vsPipelineShaderStageCI.stage = VK_SHADER_STAGE_VERTEX_BIT;
     vsPipelineShaderStageCI.module = vertexShaderModule;
     vsPipelineShaderStageCI.pName = "main";
     vsPipelineShaderStageCI.pSpecializationInfo = NULL;
 
-    auto fsModuleCI = VkUtil::ShaderModuleCI();
-    fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
-    fsModuleCI.pCode = fragmentShader.data();
-    result = vkCreateShaderModule(device.Get(), &fsModuleCI, NULL, &fragmentShaderModule);
-    if (result != VK_SUCCESS) throw std::exception("Unable to create fragment shader module.");
     auto fsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
     fsPipelineShaderStageCI.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     fsPipelineShaderStageCI.module = fragmentShaderModule;
     fsPipelineShaderStageCI.pName = "main";
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
-    
-    
+
+
+    // Build frame buffer...
+    VkImageView attachments[2];
+    attachments[1] = depthTexture->GetView();
+
+    auto framebufferCI = VkUtil::FrameBufferCI();
+    framebufferCI.renderPass = renderPass;
+    framebufferCI.attachmentCount = 2;
+    framebufferCI.pAttachments = attachments;
+    framebufferCI.width = 512;
+    framebufferCI.height = 512;
+    framebufferCI.layers = 1;
+
+    framebuffer = (VkFramebuffer*)malloc(swapchain.GetImageCount() * sizeof(VkFramebuffer));
+    for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
+        attachments[0] = swapchain.GetImageView(i);
+        result = vkCreateFramebuffer(device.Get(), &framebufferCI, NULL, &framebuffer[i]);
+        if (result != VK_SUCCESS) {
+            vkDestroyShaderModule(device.Get(), fragmentShaderModule, NULL);
+            vkDestroyShaderModule(device.Get(), vertexShaderModule, NULL);
+            vkDestroyRenderPass(device.Get(), renderPass, NULL);
+            vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+            throw std::exception("Unable to create framebuffer.");
+        }
+    }
 
     /*
      * Build command buffer *INCOMPLETE*
@@ -160,9 +213,13 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
 
 Manager::~Manager()
 {
+    for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
+        vkDestroyFramebuffer(device.Get(), framebuffer[i], NULL);
+    }
     vkDestroyShaderModule(device.Get(), fragmentShaderModule, NULL);
     vkDestroyShaderModule(device.Get(), vertexShaderModule, NULL);
     vkDestroyRenderPass(device.Get(), renderPass, NULL);
+    vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
 
     delete depthTexture;
 }

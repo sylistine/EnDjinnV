@@ -13,6 +13,7 @@ namespace Djn
             uint32_t initialHeight,
             VkPhysicalDeviceMemoryProperties memoryTypeIdx);
         ~DepthTexture();
+        VkImageView GetView() const { return view; }
     private:
         VkDevice device;
         VkImage image;

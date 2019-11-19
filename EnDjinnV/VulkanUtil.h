@@ -238,6 +238,17 @@ namespace Djn::VkUtil
     /*
      * Render Pipeline State Structures
      */
+    static VkSemaphoreCreateInfo SemaphoreCI(
+        const void* pNext = NULL,
+        VkSemaphoreCreateFlags flags = 0)
+    {
+        VkSemaphoreCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
+        return info;
+    }
+
     static VkRenderPassCreateInfo RenderPassCI(
         const void* pNext = NULL,
         VkRenderPassCreateFlags flags = 0)
@@ -275,6 +286,17 @@ namespace Djn::VkUtil
     {
         VkPipelineShaderStageCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
+        return info;
+    }
+
+    static VkFramebufferCreateInfo FrameBufferCI(
+        const void* pNext = NULL,
+        VkFramebufferCreateFlags flags = 0)
+    {
+        VkFramebufferCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         info.pNext = pNext;
         info.flags = flags;
         return info;
