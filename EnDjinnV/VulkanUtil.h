@@ -31,40 +31,6 @@ namespace Djn::VkUtil
     }
 
 
-    inline std::vector<VkQueueFamilyProperties> GetPhysicalDeviceQueueFamilyProperties(const VkPhysicalDevice& device)
-    {
-        uint32_t count;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &count, NULL);
-        std::vector<VkQueueFamilyProperties> list(count);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &count, list.data());
-        return list;
-    }
-
-
-    inline std::vector<VkPresentModeKHR> GetPhysicalDeviceSurfacePresentModes(VkPhysicalDevice device, VkSurfaceKHR surface)
-    {
-        uint32_t count;
-        VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, NULL);
-        if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface present modes.");
-        std::vector<VkPresentModeKHR> list(count);
-        result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, list.data());
-        if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface present modes.");
-        return list;
-    }
-
-
-    inline std::vector<VkSurfaceFormatKHR> GetPhysicalDeviceSurfaceFormats(VkPhysicalDevice device, VkSurfaceKHR surface)
-    {
-        uint32_t count;
-        VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, NULL);
-        if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface formats.");
-        std::vector<VkSurfaceFormatKHR> list(count);
-        result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, list.data());
-        if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface formats.");
-        return list;
-    }
-
-
     inline std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain)
     {
         uint32_t count;

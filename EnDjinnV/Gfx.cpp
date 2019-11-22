@@ -18,12 +18,9 @@ void Manager::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
 Manager* Manager::gfxInstance = NULL;
 
 
-Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), surface(surface)
+Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), surface(surface), primaryGPU(VkUtil::GetDefaultPhysicalDevice(instance))
 {
     VkResult result;
-
-    // todo: better physical device selection.
-    primaryGPU = PhysicalDevice(VkUtil::GetDefaultPhysicalDevice(instance));
 
     // get surface capabilities against chosen device
     uint32_t gfxQueueFamilyIdx;
@@ -31,11 +28,11 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     primaryGPU.GetGfxAndPresentQueueFamilyIndicies(surface, gfxQueueFamilyIdx, presentQueueFamilyIdx);
 
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(primaryGPU.Get(), surface, &surfaceCapabilities);
-    if (result != VK_SUCCESS) throw std::exception("Unable to get surface capabilities.");
-    
-    auto physicalDeviceSurfacePresentModes = VkUtil::GetPhysicalDeviceSurfacePresentModes(primaryGPU.Get(), surface);
-    auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.Get(), surface);
+    if (!primaryGPU.GetSurfaceCapabilities(surface, surfaceCapabilities)) {
+        throw std::exception("Unable to determine surface capabilities on selected GPU.");
+    }
+    auto physicalDeviceSurfacePresentModes = primaryGPU.GetSurfacePresentModes(surface);
+    auto physicalDeviceSurfaceFormats = primaryGPU.GetSurfaceFormats(surface);
     if (physicalDeviceSurfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
     
     VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
