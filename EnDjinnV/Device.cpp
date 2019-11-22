@@ -9,7 +9,7 @@
 using namespace Djn::Gfx;
 
 
-Device::Device(uint32_t gfxQueueFamilyIdx, VkPhysicalDevice physicalDevice)
+Device::Device(uint32_t gfxQueueFamilyIdx, PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
 {
     // create logical device
     float queuePriorities[1] = { 0.0 };
@@ -30,7 +30,7 @@ Device::Device(uint32_t gfxQueueFamilyIdx, VkPhysicalDevice physicalDevice)
     deviceCI.enabledExtensionCount = deviceExtensions.size();
     deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
     deviceCI.pEnabledFeatures = NULL;
-    VkResult result = vkCreateDevice(physicalDevice, &deviceCI, NULL, &vkDevice);
+    VkResult result = vkCreateDevice(physicalDevice.Get(), &deviceCI, NULL, &logicalDevice);
     if (result != VK_SUCCESS) throw std::exception("Unable to create logical device.");
 
     inited = true;
@@ -43,10 +43,16 @@ Device::~Device()
 }
 
 
+bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const
+{
+    return physicalDevice.GetMemoryTypeIndex(typeBits, flags, index);
+}
+
+
 void Device::FreeDeviceMemory()
 {
     if (!inited) return;
 
-    vkDestroyDevice(vkDevice, NULL);
+    vkDestroyDevice(logicalDevice, NULL);
     inited = false;
 }

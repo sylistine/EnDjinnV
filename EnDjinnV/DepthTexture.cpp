@@ -4,15 +4,11 @@
 #include "VulkanUtil.h"
 
 
-using namespace Djn;
+using namespace Djn::Gfx;
 
 
-DepthTexture::DepthTexture(
-    VkDevice device,
-    uint32_t initialWidth,
-    uint32_t initialHeight,
-    VkPhysicalDeviceMemoryProperties memoryProperties) :
-    device(device)
+DepthTexture::DepthTexture(const Device& device, uint32_t initialWidth, uint32_t initialHeight) :
+    vkDevice(device.GetLogical())
 {
     VkResult result;
 
@@ -31,25 +27,16 @@ DepthTexture::DepthTexture(
     imageCreateInfo.pQueueFamilyIndices = NULL;
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCreateInfo.flags = 0;
-    result = vkCreateImage(device, &imageCreateInfo, NULL, &image);
+    result = vkCreateImage(vkDevice, &imageCreateInfo, NULL, &image);
     if (result != VK_SUCCESS) throw new std::exception("Failed to create VkImage.");
 
     VkMemoryRequirements memoryReqs;
-    vkGetImageMemoryRequirements(device, image, &memoryReqs);
-    uint32_t typeBits = memoryReqs.memoryTypeBits;
+    vkGetImageMemoryRequirements(vkDevice, image, &memoryReqs);
+
+    std::cout << "Depth texture typebits: " << memoryReqs.memoryTypeBits << std::endl;
     uint32_t memoryTypeIdx = UINT32_MAX;
-    VkFlags memPropDevLocalBit = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    for (auto i = 0u; i < memoryProperties.memoryTypeCount; i++) {
-        if ((typeBits & 1) == 1) {
-            if ((memoryProperties.memoryTypes[i].propertyFlags & memPropDevLocalBit) == memPropDevLocalBit) {
-                memoryTypeIdx = i;
-                break;
-            }
-        }
-        typeBits >>= 1;
-    }
-    if (memoryTypeIdx == UINT32_MAX) {
-        vkDestroyImage(device, image, NULL);
+    if (!device.GetMemoryTypeIndex(memoryReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memoryTypeIdx)) {
+        vkDestroyImage(vkDevice, image, NULL);
         throw new std::exception("Couldn't locate required memory type idx.");
     }
 
@@ -57,16 +44,16 @@ DepthTexture::DepthTexture(
     memoryAllocateInfo.allocationSize = memoryReqs.size;
     memoryAllocateInfo.memoryTypeIndex = memoryTypeIdx;
 
-    result = vkAllocateMemory(device, &memoryAllocateInfo, NULL, &memory);
+    result = vkAllocateMemory(vkDevice, &memoryAllocateInfo, NULL, &memory);
     if (result != VK_SUCCESS) {
-        vkDestroyImage(device, image, NULL);
+        vkDestroyImage(vkDevice, image, NULL);
         throw new std::exception("Couldn't allocate memory for image.");
     }
 
-    result = vkBindImageMemory(device, image, memory, 0);
+    result = vkBindImageMemory(vkDevice, image, memory, 0);
     if (result != VK_SUCCESS) {
-        vkFreeMemory(device, memory, NULL);
-        vkDestroyImage(device, image, NULL);
+        vkFreeMemory(vkDevice, memory, NULL);
+        vkDestroyImage(vkDevice, image, NULL);
         throw new std::exception("Unable to bind Image to DeviceMemory.");
     }
 
@@ -83,10 +70,10 @@ DepthTexture::DepthTexture(
     viewCreateInfo.subresourceRange.baseArrayLayer = 0;
     viewCreateInfo.subresourceRange.layerCount = 1;
     viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    result = vkCreateImageView(device, &viewCreateInfo, NULL, &view);
+    result = vkCreateImageView(vkDevice, &viewCreateInfo, NULL, &view);
     if (result != VK_SUCCESS) {
-        vkFreeMemory(device, memory, NULL);
-        vkDestroyImage(device, image, NULL);
+        vkFreeMemory(vkDevice, memory, NULL);
+        vkDestroyImage(vkDevice, image, NULL);
         throw new std::exception("Unable to create Image image view.");
     }
 }
@@ -94,7 +81,7 @@ DepthTexture::DepthTexture(
 
 DepthTexture::~DepthTexture()
 {
-    vkDestroyImageView(device, view, NULL);
-    vkFreeMemory(device, memory, NULL);
-    vkDestroyImage(device, image, NULL);
+    vkDestroyImageView(vkDevice, view, NULL);
+    vkFreeMemory(vkDevice, memory, NULL);
+    vkDestroyImage(vkDevice, image, NULL);
 }

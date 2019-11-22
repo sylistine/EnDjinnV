@@ -2,20 +2,18 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Djn
+#include "Device.h"
+
+namespace Djn::Gfx
 {
     class DepthTexture
     {
     public:
-        DepthTexture(
-            VkDevice device,
-            uint32_t initialWidth,
-            uint32_t initialHeight,
-            VkPhysicalDeviceMemoryProperties memoryTypeIdx);
+        DepthTexture(const Device& device, uint32_t initialWidth, uint32_t initialHeight);
         ~DepthTexture();
         VkImageView GetView() const { return view; }
     private:
-        VkDevice device;
+        VkDevice vkDevice;
         VkImage image;
         VkDeviceMemory memory;
         VkImageView view;

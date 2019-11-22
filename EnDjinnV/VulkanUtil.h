@@ -40,35 +40,6 @@ namespace Djn::VkUtil
         return list;
     }
 
-    inline void GetGfxAndPresentQueueFamilyIndex(
-        VkPhysicalDevice device,
-        std::vector<VkQueueFamilyProperties> qfp,
-        VkSurfaceKHR surface,
-        uint32_t& gfxQueueFamilyIdx,
-        uint32_t& presentQueueFamilyIdx)
-    {
-        gfxQueueFamilyIdx = UINT32_MAX;
-        presentQueueFamilyIdx = UINT32_MAX;
-        for (auto i = 0u; i < qfp.size(); i++) {
-            VkBool32 supportsPresent;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &supportsPresent);
-            auto graphicsFlag = qfp[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
-
-            if (graphicsFlag != 0 && supportsPresent == VK_TRUE) {
-                gfxQueueFamilyIdx = i;
-                presentQueueFamilyIdx = i;
-                break;
-            } else {
-                if (gfxQueueFamilyIdx == UINT32_MAX && graphicsFlag != 0) {
-                    gfxQueueFamilyIdx = i;
-                }
-                if (presentQueueFamilyIdx == UINT32_MAX && supportsPresent == VK_TRUE) {
-                    presentQueueFamilyIdx = i;
-                }
-            }
-        }
-    }
-
 
     inline std::vector<VkPresentModeKHR> GetPhysicalDeviceSurfacePresentModes(VkPhysicalDevice device, VkSurfaceKHR surface)
     {
@@ -297,6 +268,17 @@ namespace Djn::VkUtil
     {
         VkFramebufferCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        info.pNext = pNext;
+        info.flags = flags;
+        return info;
+    }
+
+    static VkBufferCreateInfo BufferCI(
+        const void* pNext = NULL,
+        VkBufferCreateFlags flags = 0)
+    {
+        VkBufferCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         info.pNext = pNext;
         info.flags = flags;
         return info;

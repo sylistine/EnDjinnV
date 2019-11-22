@@ -40,7 +40,7 @@ namespace Djn::Gfx
             return *this;
         }
         VkSwapchainKHR GetSwapchainKHR() const { return vkSwapchain; }
-        uint32_t GetImageCount() const { return swapchainImages.size(); }
+        size_t GetImageCount() const { return swapchainImages.size(); }
         VkImage GetImage(uint32_t idx) const
         {
             if (idx < 0 || idx >= GetImageCount()) throw std::exception("Argument out of range exception.");

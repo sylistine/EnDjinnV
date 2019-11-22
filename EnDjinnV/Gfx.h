@@ -6,29 +6,16 @@
 #include "VulkanUtil.h"
 #include "Shader.h"
 
+#include "PhysicalDevice.h"
 #include "Device.h"
 #include "CommandPool.h"
 #include "CommandBuffer.h"
 #include "SwapChain.h"
 #include "DepthTexture.h"
+#include "Buffer.h"
 
 namespace Djn::Gfx
 {
-    typedef struct PhysicalDevice
-    {
-        PhysicalDevice() {}
-        PhysicalDevice(VkPhysicalDevice dev) :
-            device(dev)
-        {
-            queueFamilyProperties = VkUtil::GetPhysicalDeviceQueueFamilyProperties(dev);
-            vkGetPhysicalDeviceMemoryProperties(dev, &memoryProperties);
-        }
-        VkPhysicalDevice device;
-        std::vector<VkQueueFamilyProperties> queueFamilyProperties;
-        VkPhysicalDeviceMemoryProperties memoryProperties;
-
-    } PhysicalDevice;
-
     class Manager
     {
     public:

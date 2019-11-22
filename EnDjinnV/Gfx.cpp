@@ -28,18 +28,14 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     // get surface capabilities against chosen device
     uint32_t gfxQueueFamilyIdx;
     uint32_t presentQueueFamilyIdx;
-    VkUtil::GetGfxAndPresentQueueFamilyIndex(
-        primaryGPU.device,
-        primaryGPU.queueFamilyProperties,
-        surface,
-        gfxQueueFamilyIdx,
-        presentQueueFamilyIdx);
+    primaryGPU.GetGfxAndPresentQueueFamilyIndicies(surface, gfxQueueFamilyIdx, presentQueueFamilyIdx);
+
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(primaryGPU.device, surface, &surfaceCapabilities);
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(primaryGPU.Get(), surface, &surfaceCapabilities);
     if (result != VK_SUCCESS) throw std::exception("Unable to get surface capabilities.");
     
-    auto physicalDeviceSurfacePresentModes = VkUtil::GetPhysicalDeviceSurfacePresentModes(primaryGPU.device, surface);
-    auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.device, surface);
+    auto physicalDeviceSurfacePresentModes = VkUtil::GetPhysicalDeviceSurfacePresentModes(primaryGPU.Get(), surface);
+    auto physicalDeviceSurfaceFormats = VkUtil::GetPhysicalDeviceSurfaceFormats(primaryGPU.Get(), surface);
     if (physicalDeviceSurfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
     
     VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
@@ -47,19 +43,19 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
         swapchainFormat = VK_FORMAT_B8G8R8A8_UNORM;
     }
 
-    device = Device(gfxQueueFamilyIdx, primaryGPU.device);
-    cmdPool = CommandPool(device.Get(), gfxQueueFamilyIdx);
-    cmdBuffer = CommandBuffer(device.Get(), cmdPool.Get());
+    device = Device(gfxQueueFamilyIdx, primaryGPU.Get());
+    cmdPool = CommandPool(device.GetLogical(), gfxQueueFamilyIdx);
+    cmdBuffer = CommandBuffer(device.GetLogical(), cmdPool.Get());
     std::vector<uint32_t> queueFamilyIndices;
     if (gfxQueueFamilyIdx != presentQueueFamilyIdx) {
         queueFamilyIndices.push_back(gfxQueueFamilyIdx);
         queueFamilyIndices.push_back(presentQueueFamilyIdx);
     }
-    swapchain = Swapchain(device.Get(), surface, swapchainFormat,
+    swapchain = Swapchain(device.GetLogical(), surface, swapchainFormat,
         surfaceCapabilities, queueFamilyIndices);
 
     // create depth texture
-    depthTexture = new DepthTexture(device.Get(), 512, 512, primaryGPU.memoryProperties);
+    depthTexture = new DepthTexture(device, 512, 512);
 
     // TODO: setup uniform buffer for MVP, time, audio data...?
 
@@ -67,12 +63,12 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
      * Create VkRenderPass
      */
     auto semaphoreCI = VkUtil::SemaphoreCI();
-    result = vkCreateSemaphore(device.Get(), &semaphoreCI, NULL, &imageAcquiredSemaphore);
+    result = vkCreateSemaphore(device.GetLogical(), &semaphoreCI, NULL, &imageAcquiredSemaphore);
     if (result != VK_SUCCESS) throw std::exception("Unable to create semaphore for image acquisition.");
     
     uint32_t bufferIdx;
     result = vkAcquireNextImageKHR(
-        device.Get(),
+        device.GetLogical(),
         swapchain.GetSwapchainKHR(),
         UINT64_MAX,
         imageAcquiredSemaphore,
@@ -129,9 +125,9 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     renderpassCI.dependencyCount = 0;
     renderpassCI.pDependencies = NULL;
 
-    result = vkCreateRenderPass(device.Get(), &renderpassCI, NULL, &renderPass);
+    result = vkCreateRenderPass(device.GetLogical(), &renderpassCI, NULL, &renderPass);
     if (result != VK_SUCCESS) {
-        vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+        vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
     }
 
     // TODO: setup shader workflow.
@@ -143,21 +139,21 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     auto vsModuleCI = VkUtil::ShaderModuleCI();
     vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
     vsModuleCI.pCode = vertexShader.data();
-    result = vkCreateShaderModule(device.Get(), &vsModuleCI, NULL, &vertexShaderModule);
+    result = vkCreateShaderModule(device.GetLogical(), &vsModuleCI, NULL, &vertexShaderModule);
     if (result != VK_SUCCESS) {
-        vkDestroyRenderPass(device.Get(), renderPass, NULL);
-        vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+        vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
+        vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
         throw std::exception("Unable to create vertex shader module.");
     }
 
     auto fsModuleCI = VkUtil::ShaderModuleCI();
     fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
     fsModuleCI.pCode = fragmentShader.data();
-    result = vkCreateShaderModule(device.Get(), &fsModuleCI, NULL, &fragmentShaderModule);
+    result = vkCreateShaderModule(device.GetLogical(), &fsModuleCI, NULL, &fragmentShaderModule);
     if (result != VK_SUCCESS) {
-        vkDestroyShaderModule(device.Get(), vertexShaderModule, NULL);
-        vkDestroyRenderPass(device.Get(), renderPass, NULL);
-        vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+        vkDestroyShaderModule(device.GetLogical(), vertexShaderModule, NULL);
+        vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
+        vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
         throw std::exception("Unable to create fragment shader module.");
     }
 
@@ -189,15 +185,18 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
     framebuffer = (VkFramebuffer*)malloc(swapchain.GetImageCount() * sizeof(VkFramebuffer));
     for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
         attachments[0] = swapchain.GetImageView(i);
-        result = vkCreateFramebuffer(device.Get(), &framebufferCI, NULL, &framebuffer[i]);
+        result = vkCreateFramebuffer(device.GetLogical(), &framebufferCI, NULL, &framebuffer[i]);
         if (result != VK_SUCCESS) {
-            vkDestroyShaderModule(device.Get(), fragmentShaderModule, NULL);
-            vkDestroyShaderModule(device.Get(), vertexShaderModule, NULL);
-            vkDestroyRenderPass(device.Get(), renderPass, NULL);
-            vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+            vkDestroyShaderModule(device.GetLogical(), fragmentShaderModule, NULL);
+            vkDestroyShaderModule(device.GetLogical(), vertexShaderModule, NULL);
+            vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
+            vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
             throw std::exception("Unable to create framebuffer.");
         }
     }
+
+    std::vector<Vertex> vertexList;
+    VertexBuffer testVertexBuffer(device, vertexList);
 
     /*
      * Build command buffer *INCOMPLETE*
@@ -214,12 +213,12 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
 Manager::~Manager()
 {
     for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
-        vkDestroyFramebuffer(device.Get(), framebuffer[i], NULL);
+        vkDestroyFramebuffer(device.GetLogical(), framebuffer[i], NULL);
     }
-    vkDestroyShaderModule(device.Get(), fragmentShaderModule, NULL);
-    vkDestroyShaderModule(device.Get(), vertexShaderModule, NULL);
-    vkDestroyRenderPass(device.Get(), renderPass, NULL);
-    vkDestroySemaphore(device.Get(), imageAcquiredSemaphore, NULL);
+    vkDestroyShaderModule(device.GetLogical(), fragmentShaderModule, NULL);
+    vkDestroyShaderModule(device.GetLogical(), vertexShaderModule, NULL);
+    vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
+    vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
 
     delete depthTexture;
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -162,30 +162,40 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Gfx.cpp" />
     <ClCompile Include="EnDjinnV.cpp" />
+    <ClCompile Include="PhysicalDevice.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Platform.cpp" />
     <ClCompile Include="DepthTexture.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="WindowsPlatformUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Buffer.h" />
     <ClInclude Include="CommandBuffer.h" />
     <ClInclude Include="CommandPool.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="EnDjinnV.h" />
     <ClInclude Include="Gfx.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="PhysicalDevice.h" />
     <ClInclude Include="Platform.h" />
     <ClInclude Include="DepthTexture.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="Types2d.h" />
+    <ClInclude Include="Types3d.h" />
+    <ClInclude Include="Types4d.h" />
+    <ClInclude Include="Vertex.h" />
     <ClInclude Include="VulkanUtil.h" />
     <ClInclude Include="WindowsPlatformUtil.h" />
   </ItemGroup>
