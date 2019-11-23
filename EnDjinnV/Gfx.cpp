@@ -18,29 +18,20 @@ void Manager::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
 Manager* Manager::gfxInstance = NULL;
 
 
-Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInstance), surface(surface), primaryGPU(VkUtil::GetDefaultPhysicalDevice(instance))
+Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
+    instance(vkInstance),
+    primaryGPU(VkUtil::GetDefaultPhysicalDevice(instance), surface),
+    device(primaryGPU)
 {
     VkResult result;
-
-    // get surface capabilities against chosen device
-    uint32_t gfxQueueFamilyIdx;
-    uint32_t presentQueueFamilyIdx;
-    primaryGPU.GetGfxAndPresentQueueFamilyIndicies(surface, gfxQueueFamilyIdx, presentQueueFamilyIdx);
-
-    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    if (!primaryGPU.GetSurfaceCapabilities(surface, surfaceCapabilities)) {
-        throw std::exception("Unable to determine surface capabilities on selected GPU.");
-    }
-    auto physicalDeviceSurfacePresentModes = primaryGPU.GetSurfacePresentModes(surface);
-    auto physicalDeviceSurfaceFormats = primaryGPU.GetSurfaceFormats(surface);
-    if (physicalDeviceSurfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
     
-    VkFormat swapchainFormat = physicalDeviceSurfaceFormats[0].format;
+    VkFormat swapchainFormat = primaryGPU.GetSurfaceFormats()[0].format;
     if (swapchainFormat == VK_FORMAT_UNDEFINED) {
         swapchainFormat = VK_FORMAT_B8G8R8A8_UNORM;
     }
 
-    device = Device(gfxQueueFamilyIdx, primaryGPU.Get());
+    auto gfxQueueFamilyIdx = primaryGPU.GetGraphicsQueueFamilyIndex();
+    auto presentQueueFamilyIdx = primaryGPU.GetPresentQueueFamilyIndex();
     cmdPool = CommandPool(device.GetLogical(), gfxQueueFamilyIdx);
     cmdBuffer = CommandBuffer(device.GetLogical(), cmdPool.Get());
     std::vector<uint32_t> queueFamilyIndices;
@@ -49,7 +40,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) : instance(vkInsta
         queueFamilyIndices.push_back(presentQueueFamilyIdx);
     }
     swapchain = Swapchain(device.GetLogical(), surface, swapchainFormat,
-        surfaceCapabilities, queueFamilyIndices);
+        primaryGPU.GetSurfaceCapabilities(), queueFamilyIndices);
 
     // create depth texture
     depthTexture = new DepthTexture(device, 512, 512);

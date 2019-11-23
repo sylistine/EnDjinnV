@@ -30,8 +30,6 @@ VertexBuffer::VertexBuffer(const Device& device, std::vector<Vertex> vertex)
     VkMemoryRequirements memoryReqs = {};
     vkGetBufferMemoryRequirements(vkDevice, buffer, &memoryReqs);
 
-    std::cout << "Vertex buffer typebits: " << memoryReqs.memoryTypeBits << std::endl;
-
     VkMemoryAllocateInfo memoryAllocInfo = {};
     memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocInfo.pNext = NULL;

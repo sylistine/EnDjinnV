@@ -26,7 +26,6 @@ namespace Djn::Gfx
         ~Manager();
 
         VkInstance instance;
-        VkSurfaceKHR surface;
         // Physical device data.
         PhysicalDevice primaryGPU;
         // Logical device data.

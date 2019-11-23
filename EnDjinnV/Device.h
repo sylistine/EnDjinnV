@@ -13,29 +13,27 @@ namespace Djn::Gfx
     class Device
     {
     public:
-        Device() = default;
-        Device(uint32_t gfxQueueFamilyIdx, PhysicalDevice physicalDevice);
+        /// Full constructor.
+        Device(PhysicalDevice physicalDevice);
+
+        /// Destructor.
         ~Device();
-        Device(Device&& other)
-        {
-            this->FreeDeviceMemory();
-            this->logicalDevice = other.logicalDevice;
-            this->inited = true;
-            other.inited = false;
-        }
-        Device& operator=(Device&& other)
-        {
-            if (this != &other) {
-                this->FreeDeviceMemory();
-                this->logicalDevice = other.logicalDevice;
-                this->inited = true;
-                other.inited = false;
-            }
-            return *this;
-        }
+
+        /// Copy constructor.
+        Device(Device&& other) noexcept;
+
+        /// Move assignment operator.
+        Device& operator=(Device&& other) noexcept;
+
+        /// Returns the logical vulkan device.
         VkDevice GetLogical() const { return logicalDevice; }
-        PhysicalDevice GetPhysical() const { return physicalDevice; }
-        bool GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const;
+
+        /// Returns the physical device.
+        VkPhysicalDevice GetPhysical() const { return physicalDevice.Get(); }
+
+        /// Gets the first index of a memory type that matches typebits and flags.
+        bool GetMemoryTypeIndex(uint32_t typeBits, VkFlags flags, uint32_t& index) const;
+
     private:
         bool inited = false;
         VkDevice logicalDevice;

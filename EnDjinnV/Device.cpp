@@ -9,13 +9,12 @@
 using namespace Djn::Gfx;
 
 
-Device::Device(uint32_t gfxQueueFamilyIdx, PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
+Device::Device(PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
 {
-    // create logical device
     float queuePriorities[1] = { 0.0 };
 
     auto deviceQueueCI = VkUtil::DeviceQueueCI();
-    deviceQueueCI.queueFamilyIndex = gfxQueueFamilyIdx;
+    deviceQueueCI.queueFamilyIndex = physicalDevice.GetGraphicsQueueFamilyIndex();
     deviceQueueCI.queueCount = 1;
     deviceQueueCI.pQueuePriorities = queuePriorities;
 
@@ -43,7 +42,29 @@ Device::~Device()
 }
 
 
-bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const
+Device::Device(Device&& other) noexcept : physicalDevice(other.physicalDevice)
+{
+    this->FreeDeviceMemory();
+    this->logicalDevice = other.logicalDevice;
+    this->inited = true;
+    other.inited = false;
+}
+
+
+Device& Device::operator=(Device&& other) noexcept
+{
+    if (this != &other) {
+        this->FreeDeviceMemory();
+        this->logicalDevice = other.logicalDevice;
+        this->physicalDevice = other.physicalDevice;
+        this->inited = true;
+        other.inited = false;
+    }
+    return *this;
+}
+
+
+bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkFlags flags, uint32_t& index) const
 {
     return physicalDevice.GetMemoryTypeIndex(typeBits, flags, index);
 }
@@ -52,7 +73,7 @@ bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFla
 void Device::FreeDeviceMemory()
 {
     if (!inited) return;
-
+    std::cout << "Destroying logical device." << std::endl;
     vkDestroyDevice(logicalDevice, NULL);
     inited = false;
 }
