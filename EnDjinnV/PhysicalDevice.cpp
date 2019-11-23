@@ -45,7 +45,7 @@ Djn::Gfx::PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outp
 }
 
 
-bool PhysicalDevice::GetMemoryTypeIndex(uint32_t typeBits, VkFlags flags, uint32_t& index) const
+bool PhysicalDevice::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const
 {
     for (auto i = 0u; i < memoryProperties.memoryTypeCount; i++) {
         if ((typeBits & 1) == 1) {

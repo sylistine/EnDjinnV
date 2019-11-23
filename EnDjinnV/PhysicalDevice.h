@@ -32,7 +32,7 @@ namespace Djn::Gfx
         // Get the index of the memory type that supports `flags`.
         // `typeBits`, a value returned from the `vkGet*MemoryRequirements` class of functions, determines what indices can be tested.
         // Returns false if no valid index was found.
-        bool GetMemoryTypeIndex(uint32_t typeBits, VkFlags flags, uint32_t& index) const;
+        bool GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const;
 
         // Get's the capabilities for `surface` against this physical device.
         // Returns false if capabilities couldn't be retrieved.

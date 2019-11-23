@@ -32,7 +32,7 @@ namespace Djn::Gfx
         VkPhysicalDevice GetPhysical() const { return physicalDevice.Get(); }
 
         /// Gets the first index of a memory type that matches typebits and flags.
-        bool GetMemoryTypeIndex(uint32_t typeBits, VkFlags flags, uint32_t& index) const;
+        bool GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const;
 
     private:
         bool inited = false;

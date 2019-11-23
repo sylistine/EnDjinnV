@@ -64,7 +64,7 @@ Device& Device::operator=(Device&& other) noexcept
 }
 
 
-bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkFlags flags, uint32_t& index) const
+bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const
 {
     return physicalDevice.GetMemoryTypeIndex(typeBits, flags, index);
 }
@@ -73,7 +73,7 @@ bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkFlags flags, uint
 void Device::FreeDeviceMemory()
 {
     if (!inited) return;
-    std::cout << "Destroying logical device." << std::endl;
+
     vkDestroyDevice(logicalDevice, NULL);
     inited = false;
 }
