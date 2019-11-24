@@ -20,7 +20,7 @@ int main()
         Gfx::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
         std::cout << "Looping forever." << std::endl;
         while (true) {}
-    } catch (const std::exception& e) {
+    } catch (const std::exception & e) {
         std::cout << "Exception caught." << std::endl;
         // TODO: setup that logger again.
         std::cout << e.what() << std::endl;

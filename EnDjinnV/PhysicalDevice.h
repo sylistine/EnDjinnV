@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include "VulkanUtil.h"
 
@@ -40,7 +40,7 @@ namespace Djn::Gfx
 
         // Returns a list of all Queue Family Properties for this device.
         std::vector<VkQueueFamilyProperties> GetQueueFamilyProperties() const;
-        
+
         // Returns a list of available surface persent modes.
         std::vector<VkPresentModeKHR> GetSurfacePresentModes() const;
 

@@ -24,12 +24,12 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     device(primaryGPU)
 {
     VkResult result;
-    
+
     VkFormat swapchainFormat = primaryGPU.GetSurfaceFormats()[0].format;
     if (swapchainFormat == VK_FORMAT_UNDEFINED) {
         swapchainFormat = VK_FORMAT_B8G8R8A8_UNORM;
     }
-
+    
     auto gfxQueueFamilyIdx = primaryGPU.GetGraphicsQueueFamilyIndex();
     auto presentQueueFamilyIdx = primaryGPU.GetPresentQueueFamilyIndex();
     cmdPool = CommandPool(device.GetLogical(), gfxQueueFamilyIdx);
@@ -53,7 +53,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     auto semaphoreCI = VkUtil::SemaphoreCI();
     result = vkCreateSemaphore(device.GetLogical(), &semaphoreCI, NULL, &imageAcquiredSemaphore);
     if (result != VK_SUCCESS) throw std::exception("Unable to create semaphore for image acquisition.");
-    
+
     uint32_t bufferIdx;
     result = vkAcquireNextImageKHR(
         device.GetLogical(),
@@ -104,7 +104,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     subpassDesc.pDepthStencilAttachment = &depthReference;
     subpassDesc.preserveAttachmentCount = 0;
     subpassDesc.pPreserveAttachments = NULL;
-    
+
     auto renderpassCI = VkUtil::RenderPassCI();
     renderpassCI.attachmentCount = attachmentDescCount;
     renderpassCI.pAttachments = attachmentDescs;
@@ -257,7 +257,7 @@ std::vector<unsigned int> Manager::CompileShader(
         throw std::exception("error compiling shaders");
     }
     std::vector<unsigned int> data;
-    for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++)         {
+    for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++) {
         data.push_back(*it);
     }
 

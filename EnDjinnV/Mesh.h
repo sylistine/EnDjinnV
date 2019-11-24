@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "Vertex.h"
 
 static const Djn::Gfx::Vertex g_vb_solid_face_colors_Data[] = {
@@ -47,10 +48,15 @@ static const Djn::Gfx::Vertex g_vb_solid_face_colors_Data[] = {
     {Djn::double4(-1, -1, -1), Djn::double4(0.f, 1.f, 1.f)},
 };
 
-class Mesh
+namespace Djn::Gfx
 {
-public:
-    Mesh();
-    ~Mesh();
-};
-
+    class Mesh
+    {
+    public:
+        Mesh();
+        ~Mesh();
+    private:
+        std::vector<Vertex> verts;
+        std::vector<size_t> tris;
+    };
+}

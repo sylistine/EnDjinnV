@@ -2,10 +2,11 @@
 
 #include "PhysicalDevice.h"
 
+
 using namespace Djn::Gfx;
 
 
-Djn::Gfx::PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface) : physicalDevice(dev), outputSurface(outputSurface)
+PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface) : physicalDevice(dev), outputSurface(outputSurface)
 {
     queueFamilyProperties = GetQueueFamilyProperties();
 
@@ -23,8 +24,7 @@ Djn::Gfx::PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outp
             gfxQueueFamilyIdx = i;
             presentQueueFamilyIdx = i;
             break;
-        }
-        else {
+        } else {
             if (gfxQueueFamilyIdx == UINT32_MAX && graphicsFlag != 0) {
 
                 if (presentQueueFamilyIdx == UINT32_MAX && supportsPresent == VK_TRUE) {

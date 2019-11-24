@@ -11,12 +11,17 @@ namespace Djn::Gfx
     class Buffer
     {
     public:
-        ~Buffer();
+        Buffer(
+            const Device& device,
+            VkBufferUsageFlags usage,
+            void* data,
+            VkDeviceSize size);
+        virtual ~Buffer();
     protected:
-        Buffer();
         VkDevice vkDevice;
         VkBuffer buffer;
         VkDeviceMemory memory;
+        VkMemoryAllocateInfo memoryInfo;
     };
 
     class VertexBuffer : public Buffer
@@ -24,7 +29,12 @@ namespace Djn::Gfx
     public:
         VertexBuffer(const Device& device, std::vector<Vertex> vertex);
         ~VertexBuffer();
-    private:
-        uint32_t* vertexData;
+    };
+
+    class UniformBuffer : public Buffer
+    {
+    public:
+        UniformBuffer(const Device& device);
+        ~UniformBuffer();
     };
 }

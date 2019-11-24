@@ -2,6 +2,9 @@
 #include "Mesh.h"
 
 
+using namespace Djn::Gfx;
+
+
 Mesh::Mesh()
 {}
 
