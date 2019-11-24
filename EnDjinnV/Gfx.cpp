@@ -184,6 +184,9 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     }
 
     std::vector<Vertex> vertexList;
+    vertexList.push_back(Vertex(double4(0, 0, 0), double4(1, 0, 0)));
+    vertexList.push_back(Vertex(double4(0.5, 0, 0), double4(0, 1, 0)));
+    vertexList.push_back(Vertex(double4(0, 0.5, 0), double4(0, 0, 1)));
     VertexBuffer testVertexBuffer(device, vertexList);
 
     /*

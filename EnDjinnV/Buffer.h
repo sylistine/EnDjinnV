@@ -24,5 +24,7 @@ namespace Djn::Gfx
     public:
         VertexBuffer(const Device& device, std::vector<Vertex> vertex);
         ~VertexBuffer();
+    private:
+        uint32_t* vertexData;
     };
 }
