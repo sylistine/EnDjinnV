@@ -8,12 +8,12 @@ namespace Djn::Gfx
     {
     public:
         Vertex();
-        Vertex(double4 position, double4 color);
+        Vertex(vec4 position, vec4 color);
         ~Vertex();
     private:
-        double4 position;
-        double4 normal;
-        double4 uv;
-        double4 color;
+        vec4 position;
+        vec4 normal;
+        vec4 uv;
+        vec4 color;
     };
 }

@@ -81,12 +81,12 @@ VertexBuffer::~VertexBuffer()
 {}
 
 
-UniformBuffer::UniformBuffer(const Device& device) :
+UniformBuffer::UniformBuffer(const Device& device, void* data, VkDeviceSize size) :
     Buffer(
         device,
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        nullptr,
-        (VkDeviceSize)0)
+        data,
+        size)
 {}
 
 

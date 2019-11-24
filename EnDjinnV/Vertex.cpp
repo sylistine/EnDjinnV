@@ -5,11 +5,11 @@
 using namespace Djn::Gfx;
 
 
-Vertex::Vertex() : position(double4(0, 0, 0, 0)), color(double4(0, 0, 0, 0))
+Vertex::Vertex() : position(vec4(0, 0, 0, 0)), color(vec4(0, 0, 0, 0))
 {}
 
 
-Vertex::Vertex(Djn::double4 position, Djn::double4 color) :
+Vertex::Vertex(vec4 position, vec4 color) :
     position(position), color(color)
 {}
 

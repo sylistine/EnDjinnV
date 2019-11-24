@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 using namespace Djn::Gfx;
 
 
@@ -183,10 +185,27 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
         }
     }
 
+    // TODO: mvp buffer and vertex buffers will be setup
+    // AFTER graphics initialization in the future.
+    mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+    mat4 viewMatrix = glm::lookAt(
+        glm::vec3(-5, 3, -10),  // Camera is at (-5,3,-10), in World Space
+        glm::vec3(0, 0, 0),     // and looks at the origin
+        glm::vec3(0, -1, 0)     // Head is up (set to 0,-1,0 to look upside-down)
+    );
+    mat4 modelMatrix = mat4(1.0f);
+    mat4 clipMatrix = mat4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, -1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.5f, 0.0f,
+        0.0f, 0.0f, 0.5f, 1.0f);
+    mat4 mvp = clipMatrix * projectionMatrix * viewMatrix * modelMatrix;
+    UniformBuffer mvpBuffer(device, &mvp, sizeof(mvp));
+
     std::vector<Vertex> vertexList;
-    vertexList.push_back(Vertex(double4(0, 0, 0), double4(1, 0, 0)));
-    vertexList.push_back(Vertex(double4(0.5, 0, 0), double4(0, 1, 0)));
-    vertexList.push_back(Vertex(double4(0, 0.5, 0), double4(0, 0, 1)));
+    vertexList.push_back(Vertex(vec4(0.f, 0.f, 0.f, 0.f), vec4(1.f, 0.f, 0.f, 0.f)));
+    vertexList.push_back(Vertex(vec4(0.5f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
+    vertexList.push_back(Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
     VertexBuffer testVertexBuffer(device, vertexList);
 
     /*

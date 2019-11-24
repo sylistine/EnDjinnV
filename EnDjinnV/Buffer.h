@@ -34,7 +34,7 @@ namespace Djn::Gfx
     class UniformBuffer : public Buffer
     {
     public:
-        UniformBuffer(const Device& device);
+        UniformBuffer(const Device& device, void* data, VkDeviceSize size);
         ~UniformBuffer();
     };
 }
