@@ -187,6 +187,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
 
     // TODO: mvp buffer and vertex buffers will be setup
     // AFTER graphics initialization in the future.
+    // Create Uniform MVP buffer.
     mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
     mat4 viewMatrix = glm::lookAt(
         glm::vec3(-5, 3, -10),  // Camera is at (-5,3,-10), in World Space
@@ -200,13 +201,18 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
         0.0f, 0.0f, 0.5f, 0.0f,
         0.0f, 0.0f, 0.5f, 1.0f);
     mat4 mvp = clipMatrix * projectionMatrix * viewMatrix * modelMatrix;
-    UniformBuffer mvpBuffer(device, &mvp, sizeof(mvp));
+    Buffer mvpBuffer(
+        device, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        &mvp, sizeof(mvp));
 
+    // Create vertex buffer.
     std::vector<Vertex> vertexList;
     vertexList.push_back(Vertex(vec4(0.f, 0.f, 0.f, 0.f), vec4(1.f, 0.f, 0.f, 0.f)));
     vertexList.push_back(Vertex(vec4(0.5f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
     vertexList.push_back(Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
-    VertexBuffer testVertexBuffer(device, vertexList);
+    Buffer vertexBuffer(
+        device, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vertexList.data(), vertexList.size() * sizeof(Vertex));
 
     /*
      * Build command buffer *INCOMPLETE*

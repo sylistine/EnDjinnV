@@ -66,29 +66,3 @@ Buffer::~Buffer()
     vkFreeMemory(vkDevice, memory, NULL);
     vkDestroyBuffer(vkDevice, buffer, NULL);
 }
-
-
-VertexBuffer::VertexBuffer(const Device& device, std::vector<Vertex> vertices) :
-    Buffer(
-        device,
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vertices.data(),
-        vertices.size() * sizeof(Vertex))
-{}
-
-
-VertexBuffer::~VertexBuffer()
-{}
-
-
-UniformBuffer::UniformBuffer(const Device& device, void* data, VkDeviceSize size) :
-    Buffer(
-        device,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        data,
-        size)
-{}
-
-
-UniformBuffer::~UniformBuffer()
-{}
