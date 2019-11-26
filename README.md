@@ -7,7 +7,7 @@ The long-term goal of EnDjinnV is to be a full-fledged Vulkan-only game engine. 
 ## Short Term Goals
 - A "scene" architecture to manage and allow serialization of renderable objects and cameras
 - VR-integration
-- An asset import pipeline (a project external to the main EnDjinn process should not be responsible for compiling these)
+- An asset import pipeline (i.e.: When running a built game, these things should already be compiled)
   - GLTF format 3d models
   - GLSL shaders
   - any sort of audio or other necessary graphics
