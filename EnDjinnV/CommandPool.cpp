@@ -14,7 +14,7 @@ CommandPool::CommandPool(VkDevice device, uint32_t queueFamilyIndex, uint32_t in
     auto commandPoolCI = VkUtil::CommandPoolCI();
     commandPoolCI.queueFamilyIndex = queueFamilyIndex;
     VkResult result = vkCreateCommandPool(vkDevice, &commandPoolCI, NULL, &pool);
-    if (result != VK_SUCCESS) throw std::exception("Unable to create command pool.");
+    if (result != VK_SUCCESS) throw Exception("Unable to create command pool.");
 
     CreateCommandBuffer(initialBufferCount);
 

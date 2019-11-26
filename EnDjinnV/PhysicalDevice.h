@@ -22,7 +22,7 @@ namespace Djn::Gfx
         // Get the i-th queue family's properties.
         VkQueueFamilyProperties QueueFamilyProperties(uint32_t idx) const
         {
-            if (idx < 0 || idx >= queueFamilyProperties.size()) throw std::exception("Argument out of range exception.");
+            if (idx < 0 || idx >= queueFamilyProperties.size()) throw Exception("Argument out of range exception.");
             return queueFamilyProperties[idx];
         }
 

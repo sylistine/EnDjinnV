@@ -13,7 +13,7 @@ using namespace Djn::Gfx;
 
 void Manager::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
 {
-    if (gfxInstance != NULL) throw std::exception("Gfx is already initialized.");
+    if (gfxInstance != NULL) throw Exception("Gfx is already initialized.");
 
     gfxInstance = new Manager(vkInstance, surface);
 }
@@ -49,7 +49,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
      */
     auto semaphoreCI = VkUtil::SemaphoreCI();
     result = vkCreateSemaphore(device.GetLogical(), &semaphoreCI, NULL, &imageAcquiredSemaphore);
-    if (result != VK_SUCCESS) throw std::exception("Unable to create semaphore for image acquisition.");
+    if (result != VK_SUCCESS) throw Exception("Unable to create semaphore for image acquisition.");
 
     uint32_t bufferIdx;
     result = vkAcquireNextImageKHR(
@@ -127,7 +127,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     if (result != VK_SUCCESS) {
         vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
         vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
-        throw std::exception("Unable to create vertex shader module.");
+        throw Exception("Unable to create vertex shader module.");
     }
 
     auto fsModuleCI = VkUtil::ShaderModuleCI();
@@ -138,7 +138,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
         vkDestroyShaderModule(device.GetLogical(), vertexShaderModule, NULL);
         vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
         vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
-        throw std::exception("Unable to create fragment shader module.");
+        throw Exception("Unable to create fragment shader module.");
     }
 
     auto vsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
@@ -178,7 +178,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
             vkDestroyShaderModule(device.GetLogical(), vertexShaderModule, NULL);
             vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
             vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
-            throw std::exception("Unable to create framebuffer.");
+            throw Exception("Unable to create framebuffer.");
         }
     }
 
@@ -301,7 +301,7 @@ std::vector<unsigned int> Manager::CompileShader(
             std::cout << "Detected errors during vertex program compilation." << std::endl;
             std::cout << program.GetErrorMessage() << std::endl;
         }
-        throw std::exception("error compiling shaders");
+        throw Exception("error compiling shaders");
     }
     std::vector<unsigned int> data;
     for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++) {

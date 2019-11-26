@@ -45,23 +45,23 @@ PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface)
     // Update surface capabilities 
     result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, outputSurface, &surfaceCapabilities);
     if (result != VK_SUCCESS) {
-        throw std::exception("Unable to determine surface capabilities on selected GPU.");
+        throw Exception("Unable to determine surface capabilities on selected GPU.");
     }
 
     // Update present modes.
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, outputSurface, &tmpListSize, NULL);
-    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface present modes.");
+    if (result != VK_SUCCESS) throw Exception("Unable to get physical device surface present modes.");
     presentModes.resize(tmpListSize);
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, outputSurface, &tmpListSize, presentModes.data());
-    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface present modes.");
+    if (result != VK_SUCCESS) throw Exception("Unable to get physical device surface present modes.");
 
     // Update supported output formats.
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, outputSurface, &tmpListSize, NULL);
-    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface formats.");
+    if (result != VK_SUCCESS) throw Exception("Unable to get physical device surface formats.");
     surfaceFormats.resize(tmpListSize);
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, outputSurface, &tmpListSize, surfaceFormats.data());
     if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface formats.");
-    if (surfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
+    if (surfaceFormats.size() < 1) throw Exception("Unable to determine surface formats.");
 
     // We choose the 0th surface format as default.
     outputFormat = surfaceFormats[0].format;

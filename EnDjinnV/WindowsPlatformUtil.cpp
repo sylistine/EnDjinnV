@@ -48,7 +48,7 @@ void Djn::XPlat::Initialize(const char* appName)
     wndClass.lpszClassName = appName;
     wndClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
     if (!RegisterClassEx(&wndClass)) {
-        throw std::exception("Unable to register window class.");
+        throw Exception("Unable to register window class.");
     }
 
     hWnd = CreateWindowEx(
@@ -63,7 +63,7 @@ void Djn::XPlat::Initialize(const char* appName)
         moduleHandle,
         NULL);
     if (!hWnd) {
-        throw std::exception("Unable to create window.");
+        throw Exception("Unable to create window.");
     }
 }
 

@@ -32,7 +32,7 @@ Device::Device(PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
     vk::PhysicalDevice vkPhysicalDevice(physicalDevice.Get());
 
     VkResult result = vkCreateDevice(physicalDevice.Get(), &(VkDeviceCreateInfo)deviceCI, NULL, &logicalDevice);
-    if (result != VK_SUCCESS) throw std::exception("Unable to create logical device.");
+    if (result != VK_SUCCESS) throw Exception("Unable to create logical device.");
 
     inited = true;
 }

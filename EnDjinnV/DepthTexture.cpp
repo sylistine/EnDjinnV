@@ -28,7 +28,7 @@ DepthTexture::DepthTexture(const Device& device, uint32_t initialWidth, uint32_t
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCreateInfo.flags = 0;
     result = vkCreateImage(vkDevice, &imageCreateInfo, NULL, &image);
-    if (result != VK_SUCCESS) throw std::exception("Failed to create VkImage.");
+    if (result != VK_SUCCESS) throw Exception("Failed to create VkImage.");
 
     VkMemoryRequirements memoryReqs;
     vkGetImageMemoryRequirements(vkDevice, image, &memoryReqs);
@@ -37,7 +37,7 @@ DepthTexture::DepthTexture(const Device& device, uint32_t initialWidth, uint32_t
     if (!device.GetMemoryTypeIndex(memoryReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memoryTypeIdx)) {
         vkDestroyImage(vkDevice, image, NULL);
 
-        throw std::exception("Couldn't locate required memory type idx.");
+        throw Exception("Couldn't locate required memory type idx.");
     }
 
     auto memoryAllocateInfo = VkUtil::MemoryAllocInfo();

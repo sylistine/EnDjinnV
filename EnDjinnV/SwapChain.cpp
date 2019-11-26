@@ -82,7 +82,7 @@ Swapchain::Swapchain(VkDevice device, VkSurfaceKHR surface, VkFormat format,
     }
 
     VkResult result = vkCreateSwapchainKHR(vkDevice, &swapchainCI, NULL, &vkSwapchain);
-    if (result != VK_SUCCESS) throw std::exception("Unable to create swapchain");
+    if (result != VK_SUCCESS) throw Exception("Unable to create swapchain");
 
     swapchainImages = VkUtil::GetSwapchainImages(vkDevice, vkSwapchain);
     swapchainImageViews.resize(swapchainImages.size());
@@ -103,7 +103,7 @@ Swapchain::Swapchain(VkDevice device, VkSurfaceKHR surface, VkFormat format,
         result = vkCreateImageView(vkDevice, &swapchainImageViewCI, NULL, &swapchainImageViews[i]);
         if (result != VK_SUCCESS) {
             vkDestroySwapchainKHR(vkDevice, vkSwapchain, NULL);
-            throw std::exception("Unable to create views to swapchain images.");
+            throw Exception("Unable to create views to swapchain images.");
         }
     }
 

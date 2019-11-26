@@ -144,7 +144,7 @@ namespace Djn::Gfx
         VkResult result = vkCreateGraphicsPipelines(
             device.GetLogical(), VK_NULL_HANDLE, 1, &pipelineCI, NULL, pipeline);
         if (result != VK_SUCCESS) {
-            throw std::exception("Unable to create graphics pipeline.");
+            throw Exception("Unable to create graphics pipeline.");
         }
     }
 }
