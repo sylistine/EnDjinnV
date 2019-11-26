@@ -49,3 +49,20 @@ void MyClass::MyFunc()
     }
 }
 ```
+- When conditions get long, prefer dropping conditions to the next indent level, and convert to Allman:
+```
+if(true) {
+    // ...
+} else {
+    // ...
+}
+
+if (myLongVariableNameA == someOtherLongVariableNameA &&
+    myLongVariableNameB == someOtherLongVariableNameB &&
+    myLongVariableNameC == someOtherLongVariableNameC)
+{
+    // ...
+} else {
+    // ...
+}
+```
