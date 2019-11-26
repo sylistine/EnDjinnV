@@ -32,7 +32,7 @@ Platform-specific handling is tucked away in the Platform class or the XPlat uti
 - Wrap everything in the Djn namespace.
 - Prefer throwing to error checking and return codes (use Djn::Exception, which provides a stacktrace).
 - This means any allocations (CPU or GPU) must be contained in self-managing classes or smart pointers.
-- Members are camelCase, while methods are CamelCase.
+- Fields are camelCase, while functions and methods are CamelCase.
 - Indent 4 spaces
 - Allman for classes and functions, K&R internals:
 ```
