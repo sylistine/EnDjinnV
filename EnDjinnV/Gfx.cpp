@@ -6,6 +6,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "TempUtil.h"
+
 using namespace Djn::Gfx;
 
 
@@ -26,28 +28,21 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     device(primaryGPU)
 {
     VkResult result;
-
-    VkFormat swapchainFormat = primaryGPU.GetSurfaceFormats()[0].format;
-    if (swapchainFormat == VK_FORMAT_UNDEFINED) {
-        swapchainFormat = VK_FORMAT_B8G8R8A8_UNORM;
-    }
     
     auto gfxQueueFamilyIdx = primaryGPU.GetGraphicsQueueFamilyIndex();
     auto presentQueueFamilyIdx = primaryGPU.GetPresentQueueFamilyIndex();
-    cmdPool = CommandPool(device.GetLogical(), gfxQueueFamilyIdx);
-    cmdBuffer = CommandBuffer(device.GetLogical(), cmdPool.Get());
+    gfxCommandPool = CommandPool(device.GetLogical(), gfxQueueFamilyIdx, 1);
+
     std::vector<uint32_t> queueFamilyIndices;
     if (gfxQueueFamilyIdx != presentQueueFamilyIdx) {
         queueFamilyIndices.push_back(gfxQueueFamilyIdx);
         queueFamilyIndices.push_back(presentQueueFamilyIdx);
     }
-    swapchain = Swapchain(device.GetLogical(), surface, swapchainFormat,
+    swapchain = Swapchain(device.GetLogical(), surface, primaryGPU.GetOutputFormat(),
         primaryGPU.GetSurfaceCapabilities(), queueFamilyIndices);
 
     // create depth texture
     depthTexture = new DepthTexture(device, 512, 512);
-
-    // TODO: setup uniform buffer for MVP, time, audio data...?
 
     /*
      * Create VkRenderPass
@@ -65,11 +60,10 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
         VK_NULL_HANDLE,
         &bufferIdx);
 
-
     const uint32_t attachmentDescCount = 2;
     VkAttachmentDescription attachmentDescs[attachmentDescCount];
     attachmentDescs[0] = VkUtil::AttachmentDescription();
-    attachmentDescs[0].format = swapchainFormat;
+    attachmentDescs[0].format = primaryGPU.GetOutputFormat();
     attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
     attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -159,6 +153,9 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     fsPipelineShaderStageCI.pName = "main";
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
 
+    std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStages;
+    pipelineShaderStages.push_back(vsPipelineShaderStageCI);
+    pipelineShaderStages.push_back(fsPipelineShaderStageCI);
 
     // Build frame buffer...
     VkImageView attachments[2];
@@ -212,7 +209,32 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     vertexList.push_back(Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
     Buffer vertexBuffer(
         device, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vertexList.data(), vertexList.size() * sizeof(Vertex));
+        vertexList.data(), vertexList.size() * sizeof(vertexList[0]));
+
+    VkVertexInputBindingDescription vertexInputBindingDesc = {};
+    vertexInputBindingDesc.binding = 0;
+    vertexInputBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    vertexInputBindingDesc.stride = sizeof(vertexList[0]);
+
+    // Create pipeline.
+    /*VkPipelineLayoutCreateInfo newCI = vk::PipelineLayoutCreateInfo();
+    newCI.pushConstantRangeCount = 0;
+    newCI.pPushConstantRanges = NULL;
+    newCI.setLayoutCount = 1;
+    newCI.pSetLayouts = info.desc_layout.data();
+    
+    VkPipelineLayout pipelineLayout;
+
+
+    VkPipeline pipeline;
+    Djn::Gfx::PipelineCodeUtil(
+        device,
+        vertexInputBindingDesc,
+        Vertex::AttributeDescs(),
+        pipelineLayout,
+        pipelineShaderStages,
+        renderPass,
+        &pipeline);*/
 
     /*
      * Build command buffer *INCOMPLETE*
@@ -222,7 +244,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     //fillout
     auto cmdBufferBeginInfo = VkUtil::CommandBufferBeginInfo();
     cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
-    vkBeginCommandBuffer(cmdBuffer.Get(), &cmdBufferBeginInfo);
+    vkBeginCommandBuffer(gfxCommandPool[0], &cmdBufferBeginInfo);
 }
 
 

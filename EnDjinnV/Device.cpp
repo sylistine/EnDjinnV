@@ -13,7 +13,7 @@ Device::Device(PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
 {
     float queuePriorities[1] = { 0.0 };
 
-    auto deviceQueueCI = VkUtil::DeviceQueueCI();
+    vk::DeviceQueueCreateInfo deviceQueueCI;
     deviceQueueCI.queueFamilyIndex = physicalDevice.GetGraphicsQueueFamilyIndex();
     deviceQueueCI.queueCount = 1;
     deviceQueueCI.pQueuePriorities = queuePriorities;
@@ -21,7 +21,7 @@ Device::Device(PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
     std::vector<const char*> deviceExtensions;
     deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-    auto deviceCI = VkUtil::DeviceCI();
+    vk::DeviceCreateInfo deviceCI;
     deviceCI.queueCreateInfoCount = 1;
     deviceCI.pQueueCreateInfos = &deviceQueueCI;
     deviceCI.enabledLayerCount = 0;
@@ -29,7 +29,9 @@ Device::Device(PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
     deviceCI.enabledExtensionCount = deviceExtensions.size();
     deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
     deviceCI.pEnabledFeatures = NULL;
-    VkResult result = vkCreateDevice(physicalDevice.Get(), &deviceCI, NULL, &logicalDevice);
+    vk::PhysicalDevice vkPhysicalDevice(physicalDevice.Get());
+
+    VkResult result = vkCreateDevice(physicalDevice.Get(), &(VkDeviceCreateInfo)deviceCI, NULL, &logicalDevice);
     if (result != VK_SUCCESS) throw std::exception("Unable to create logical device.");
 
     inited = true;

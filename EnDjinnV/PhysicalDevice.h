@@ -14,7 +14,7 @@ namespace Djn::Gfx
 
     public:
         // Get the internal VkPhysicalDevice.
-        VkPhysicalDevice Get() const { return physicalDevice; }
+        VkPhysicalDevice Get() const { return device; }
 
         // Get the number of queue families available on this physical device.
         size_t QueueFamilyPropertyCount() const { return queueFamilyProperties.size(); }
@@ -38,28 +38,23 @@ namespace Djn::Gfx
         // Returns false if capabilities couldn't be retrieved.
         VkSurfaceCapabilitiesKHR GetSurfaceCapabilities() const { return surfaceCapabilities; }
 
-        // Returns a list of all Queue Family Properties for this device.
-        std::vector<VkQueueFamilyProperties> GetQueueFamilyProperties() const;
-
-        // Returns a list of available surface persent modes.
-        std::vector<VkPresentModeKHR> GetSurfacePresentModes() const;
-
-        // Returns a list of available surface formats.
-        std::vector<VkSurfaceFormatKHR> GetSurfaceFormats() const;
-
         // Returns the graphics queue family index.
         uint32_t GetGraphicsQueueFamilyIndex() const { return gfxQueueFamilyIdx; }
 
         // Returns the present queue family index.
         uint32_t GetPresentQueueFamilyIndex() const { return presentQueueFamilyIdx; }
+
+        VkFormat GetOutputFormat() const { return outputFormat; }
     private:
-        VkPhysicalDevice physicalDevice;
+        VkPhysicalDevice device;
         VkSurfaceKHR outputSurface;
         std::vector<VkQueueFamilyProperties> queueFamilyProperties;
         VkPhysicalDeviceMemoryProperties memoryProperties;
-        VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        std::vector<VkSurfaceFormatKHR> surfaceFormats;
         uint32_t gfxQueueFamilyIdx;
         uint32_t presentQueueFamilyIdx;
+        VkSurfaceCapabilitiesKHR surfaceCapabilities;
+        std::vector<VkPresentModeKHR> presentModes;
+        std::vector<VkSurfaceFormatKHR> surfaceFormats;
+        VkFormat outputFormat;
     };
 }

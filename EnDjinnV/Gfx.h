@@ -9,7 +9,6 @@
 #include "PhysicalDevice.h"
 #include "Device.h"
 #include "CommandPool.h"
-#include "CommandBuffer.h"
 #include "SwapChain.h"
 #include "DepthTexture.h"
 #include "Buffer.h"
@@ -30,8 +29,7 @@ namespace Djn::Gfx
         PhysicalDevice primaryGPU;
         // Logical device data.
         Device device;
-        CommandPool cmdPool;
-        CommandBuffer cmdBuffer;
+        CommandPool gfxCommandPool;
         Swapchain swapchain;
         DepthTexture* depthTexture;
         VkSemaphore imageAcquiredSemaphore;

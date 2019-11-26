@@ -6,18 +6,25 @@
 using namespace Djn::Gfx;
 
 
-PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface) : physicalDevice(dev), outputSurface(outputSurface)
+PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface) : device(dev), outputSurface(outputSurface)
 {
-    queueFamilyProperties = GetQueueFamilyProperties();
+    VkResult result;
+    uint32_t tmpListSize;
 
+    // Update queue family properties list.
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &tmpListSize, NULL);
+    queueFamilyProperties.resize(tmpListSize);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &tmpListSize, queueFamilyProperties.data());
+
+    // Update memory properties for device.
     vkGetPhysicalDeviceMemoryProperties(dev, &memoryProperties);
 
-    // get surface capabilities against chosen device
+    // Get surface capabilities against chosen device
     gfxQueueFamilyIdx = UINT32_MAX;
     presentQueueFamilyIdx = UINT32_MAX;
     for (auto i = 0u; i < queueFamilyProperties.size(); i++) {
         VkBool32 supportsPresent;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, outputSurface, &supportsPresent);
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, outputSurface, &supportsPresent);
         auto graphicsFlag = queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
 
         if (graphicsFlag != 0 && supportsPresent == VK_TRUE) {
@@ -35,13 +42,32 @@ PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface)
         gfxQueueFamilyIdx = i;
     }
 
-    VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, outputSurface, &surfaceCapabilities);
+    // Update surface capabilities 
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, outputSurface, &surfaceCapabilities);
     if (result != VK_SUCCESS) {
         throw std::exception("Unable to determine surface capabilities on selected GPU.");
     }
-    // auto physicalDeviceSurfacePresentModes = primaryGPU.GetSurfacePresentModes(surface); // TODO: use these.
-    surfaceFormats = GetSurfaceFormats();
+
+    // Update present modes.
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, outputSurface, &tmpListSize, NULL);
+    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface present modes.");
+    presentModes.resize(tmpListSize);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, outputSurface, &tmpListSize, presentModes.data());
+    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface present modes.");
+
+    // Update supported output formats.
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, outputSurface, &tmpListSize, NULL);
+    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface formats.");
+    surfaceFormats.resize(tmpListSize);
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, outputSurface, &tmpListSize, surfaceFormats.data());
+    if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface formats.");
     if (surfaceFormats.size() < 1) throw std::exception("Unable to determine surface formats.");
+
+    // We choose the 0th surface format as default.
+    outputFormat = surfaceFormats[0].format;
+    if (outputFormat == VK_FORMAT_UNDEFINED) {
+        outputFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    }
 }
 
 
@@ -57,38 +83,4 @@ bool PhysicalDevice::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags
         typeBits >>= 1;
     }
     return false;
-}
-
-
-std::vector<VkQueueFamilyProperties> PhysicalDevice::GetQueueFamilyProperties() const
-{
-    uint32_t count;
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, NULL);
-    std::vector<VkQueueFamilyProperties> list(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, list.data());
-    return list;
-}
-
-
-std::vector<VkPresentModeKHR> PhysicalDevice::GetSurfacePresentModes() const
-{
-    uint32_t count;
-    VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, outputSurface, &count, NULL);
-    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface present modes.");
-    std::vector<VkPresentModeKHR> list(count);
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, outputSurface, &count, list.data());
-    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface present modes.");
-    return list;
-}
-
-
-std::vector<VkSurfaceFormatKHR> PhysicalDevice::GetSurfaceFormats() const
-{
-    uint32_t count;
-    VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, outputSurface, &count, NULL);
-    if (result != VK_SUCCESS) throw std::exception("Unable to get physical device surface formats.");
-    std::vector<VkSurfaceFormatKHR> list(count);
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, outputSurface, &count, list.data());
-    if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface formats.");
-    return list;
 }
