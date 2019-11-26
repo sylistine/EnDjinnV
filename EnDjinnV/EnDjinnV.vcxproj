@@ -74,7 +74,7 @@
     <LibraryPath>$(VULKAN_SDK)\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(GLM_LIBRARY);$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(BOOST_LIB);$(GLM_LIBRARY);$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VULKAN_SDK)\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -82,7 +82,7 @@
     <LibraryPath>$(VULKAN_SDK)\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(GLM_LIBRARY);$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(BOOST_LIB);$(GLM_LIBRARY);$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VULKAN_SDK)\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -166,6 +166,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="Exception.cpp" />
     <ClCompile Include="Gfx.cpp" />
     <ClCompile Include="EnDjinnV.cpp" />
     <ClCompile Include="PhysicalDevice.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="CommandPool.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="EnDjinnV.h" />
+    <ClInclude Include="Exception.h" />
     <ClInclude Include="Gfx.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Mesh.h" />

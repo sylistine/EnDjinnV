@@ -30,14 +30,14 @@ CommandPool::~CommandPool()
 
 VkCommandBuffer CommandPool::CreateCommandBuffer(uint32_t count)
 {
-    if (count < 1) throw std::exception("Cannot create 0 buffers.");
+    if (count < 1) throw Exception("Cannot create 0 buffers.");
 
     VkCommandBuffer newBuffer;
     auto commandBufferAllocInfo = VkUtil::CommandBufferAllocInfo();
     commandBufferAllocInfo.commandPool = pool;
     commandBufferAllocInfo.commandBufferCount = count;
     VkResult result = vkAllocateCommandBuffers(vkDevice, &commandBufferAllocInfo, &newBuffer);
-    if (result != VK_SUCCESS) throw std::exception("Unable to allocate command buffer.");
+    if (result != VK_SUCCESS) throw Exception("Unable to allocate command buffer.");
 
     buffers.push_back(newBuffer);
     return newBuffer;

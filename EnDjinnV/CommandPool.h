@@ -36,7 +36,7 @@ namespace Djn::Gfx
         VkCommandBuffer operator[](size_t idx)
         {
             if (idx < 0 || idx >= BufferCount()) {
-                throw std::exception("Argument out of range exception.");
+                throw Exception("Argument out of range exception.");
             }
             return buffers[idx];
         }
