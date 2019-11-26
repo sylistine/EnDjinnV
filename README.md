@@ -1,33 +1,51 @@
 # EnDjinnV
-A modern renderer with game engine architecture (aspirational).
-Basically rerolling EnDjinn and swapping DX12 with Vulkan.
+EnDjinnV is a self-indulgent Vulkan research project and "simple" game engine. Self-indulgent because it is focused on slow-and-deliberate meditation on bleeding-edge game engine architecture: the sort of slow-and-deliberate meditation that is generally unacceptable in a live development/production environment.
 
 # Goals
-Like EnDjinn, EnDjinnV ultimately aspires to be a VR game engine.
-That goal is very far off.
+The long-term goal of EnDjinnV is to be a full-fledged Vulkan-only game engine. VR support is intended, and probably Android support for the Oculus Quest.
 
-Short Term:
-- a game Scene logic that influences how the command queue is built
-- VR integration
-- GLTF and <image type> support, and in generally an asset importing pipeline.
-- Profiling tool integration?
-  - At least RenderDoc tooling in the short term?
-  - new overload for memory profiling?
-  - <ihavenoideawhatimdoing.png>
-- RayTracing, because hell yeah.
+## Short Term Goals
+- A "scene" architecture to manage and allow serialization of renderable objects and cameras
+- VR-integration
+- An asset import pipeline (a project external to the main EnDjinn process should not be responsible for compiling these)
+  - GLTF format 3d models
+  - GLSL shaders
+  - any sort of audio or other necessary graphics
+- Profiling tool and other debug integrations
+  - Something? for CPU performance and memory profiling
+  - RenderDoc for GPU performance
+  
+## Long Term Goals
+- RayTracing
+  
+# NOT-Goals (AKA: high-level libraries)
+EnDjinnV does not currently intend to pioneer in some areas. To narrow scope down to extreme-performance graphics and game development, the following libraries are either in use or will be:
+- GLM (which even seems to have SIMD support its latest versions)
+- Boost (specifically, no one should ever waste time developing a x-plat stack trace utility)
+- FMOD or Wwise (or some other audio utility)
 
 # Status
-In general, this is developed following the LunarG Vulkan tutorial. For those following along, we're [here](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/05-init_swapchain.html).
-Platform stuff is pretty much all tucked away in the Platform class, which manages OS GUI Window junk. It should probably be just a platform utility class, and a Surface class made to be the abstract version of hWnd and WndProc (or whatever is used on Linux and Android).
+Vulkan is being developed (mostly) following the LunarG Vulkan tutorial [here](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html).
+Platform-specific handling is tucked away in the Platform class or the XPlat utility namespace.
 
 # Conventions
-- Prefer throwing to extensive error checking and returns.
-- public members are CamelCase, while private members are camelCase.
-- indent 4 spaces
-- Allman, not K&R:
+- Wrap everything in the Djn namespace.
+- Prefer throwing to error checking and return codes (use Djn::Exception, which provides a stacktrace).
+- This means any allocations (CPU or GPU) must be contained in self-managing classes or smart pointers.
+- Members are camelCase, while methods are CamelCase.
+- Indent 4 spaces
+- Allman for classes and functions, K&R internals:
 ```
-while (true)
+void MyClass::MyFunc()
 {
-    // do stuff
+    while (...) {
+        // ...
+    }
+
+    if (...) {
+        // ...
+    } else {
+        // ...
+    }
 }
 ```
