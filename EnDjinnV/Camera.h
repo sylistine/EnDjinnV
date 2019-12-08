@@ -2,13 +2,20 @@
 
 
 #include "EnDjinnV.h"
+#include "Transform.h"
 
-
-/// The camera simply provides the view and projection matrices for a render.
-class Camera
+namespace Djn
 {
-public:
-    Camera();
-    mat4 GetViewProjectionMatrix() const;
-};
-
+    /// The camera simply provides the view and projection matrices for a render.
+    class Camera
+    {
+    public:
+        Camera();
+        Camera(vec3 pos);
+        mat4 ProjectionMatrix() const;
+        mat4 ViewMatrix() const;
+        mat4 ClipMatrix() const;
+    private:
+        Transform transform;
+    };
+}

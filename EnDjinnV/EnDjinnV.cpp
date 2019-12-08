@@ -18,6 +18,7 @@ int main()
         Platform platform(appName);
         std::cout << "Initializing graphics." << std::endl;
         Gfx::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
+        //Gfx::Manager::
         std::cout << "Looping forever." << std::endl;
         while (true) {}
     } catch (Exception& e) {

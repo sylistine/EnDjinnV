@@ -6,7 +6,7 @@
 using namespace Djn::Gfx;
 
 
-PhysicalDevice::PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface) : device(dev), outputSurface(outputSurface)
+PhysicalDevice::PhysicalDevice(vk::PhysicalDevice dev, VkSurfaceKHR outputSurface) : device(dev), outputSurface(outputSurface)
 {
     VkResult result;
     uint32_t tmpListSize;

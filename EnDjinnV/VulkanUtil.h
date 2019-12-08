@@ -13,23 +13,6 @@ namespace Djn::VkUtil
 
     }
 
-    inline std::vector<VkPhysicalDevice> GetPhysicalDevices(const VkInstance& instance)
-    {
-        uint32_t count;
-        VkResult result = vkEnumeratePhysicalDevices(instance, &count, NULL);
-        if (result != VK_SUCCESS) throw new std::exception("Unable to enumerate physical devices.");
-        std::vector<VkPhysicalDevice> list(count);
-        result = vkEnumeratePhysicalDevices(instance, &count, list.data());
-        if (result != VK_SUCCESS) throw new std::exception("Unable to enumerate physical devices.");
-        return list;
-    }
-
-
-    inline VkPhysicalDevice GetDefaultPhysicalDevice(const VkInstance& instance)
-    {
-        return GetPhysicalDevices(instance)[0];
-    }
-
 
     inline std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain)
     {

@@ -17,9 +17,11 @@ namespace Djn::Gfx
             void* data,
             VkDeviceSize size);
         ~Buffer();
+        // copy handlers
         Buffer(const Buffer& other) = delete;
-        Buffer(Buffer&& other) = delete;
         Buffer& operator=(const Buffer& other) = delete;
+        // move handlers
+        Buffer(Buffer&& other) = delete;
         Buffer& operator=(Buffer&& other) = delete;
     private:
         VkDevice vkDevice;

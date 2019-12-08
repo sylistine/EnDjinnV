@@ -12,6 +12,7 @@
 #include "SwapChain.h"
 #include "DepthTexture.h"
 #include "Buffer.h"
+#include "RenderPass.h"
 
 namespace Djn::Gfx
 {
@@ -19,12 +20,13 @@ namespace Djn::Gfx
     {
     public:
         static void Initialize(VkInstance vkInstance, VkSurfaceKHR surface);
+        static void SetMVP(mat4 mvp);
     private:
         static Manager* gfxInstance;
         Manager(VkInstance vkInstance, VkSurfaceKHR surface);
         ~Manager();
 
-        VkInstance instance;
+        vk::Instance instance;
         // Physical device data.
         PhysicalDevice primaryGPU;
         // Logical device data.
@@ -32,14 +34,16 @@ namespace Djn::Gfx
         CommandPool gfxCommandPool;
         Swapchain swapchain;
         DepthTexture* depthTexture;
-        VkSemaphore imageAcquiredSemaphore;
-        VkRenderPass renderPass;
         VkShaderModule vertexShaderModule;
         VkShaderModule fragmentShaderModule;
-        VkFramebuffer* framebuffer;
+
+        VkRenderPass primaryRenderPass; // Renderpass responsible for drawing and presenting to the surface.
+        VkFramebuffer* primaryFramebuffer; // Framebuffer for the primary render pass: length should equal swapchain count.
 
         std::vector<unsigned int> CompileShader(
             shaderc::Compiler& compiler,
             Shader shader);
+        void SetupPrimaryRenderPass();
+        Buffer CreateUniformBuffer(void* data, size_t size);
     };
 }

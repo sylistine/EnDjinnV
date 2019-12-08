@@ -81,6 +81,9 @@
     <ClCompile Include="Exception.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>Source Files\Gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Platform.h">
@@ -157,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="Exception.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>Header Files\Gfx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

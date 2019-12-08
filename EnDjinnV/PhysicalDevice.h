@@ -10,7 +10,7 @@ namespace Djn::Gfx
     class PhysicalDevice
     {
     public:
-        PhysicalDevice(VkPhysicalDevice dev, VkSurfaceKHR outputSurface);
+        PhysicalDevice(vk::PhysicalDevice dev, VkSurfaceKHR outputSurface);
 
     public:
         // Get the internal VkPhysicalDevice.
@@ -46,7 +46,7 @@ namespace Djn::Gfx
 
         VkFormat GetOutputFormat() const { return outputFormat; }
     private:
-        VkPhysicalDevice device;
+        vk::PhysicalDevice device;
         VkSurfaceKHR outputSurface;
         std::vector<VkQueueFamilyProperties> queueFamilyProperties;
         VkPhysicalDeviceMemoryProperties memoryProperties;
