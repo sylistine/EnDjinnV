@@ -28,6 +28,13 @@ EnDjinnV does not currently intend to pioneer in some areas. To narrow scope dow
 Vulkan is being developed (mostly) following the LunarG Vulkan tutorial [here](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html).
 Platform-specific handling is tucked away in the Platform class or the XPlat utility namespace.
 
+# Getting Started
+The project is built with Visual Studio 2019.
+Necessary envvars:
+- VULKAN_SDK - location of Vulkan sdk 1.0.x.
+- GLM_DIR - location of GLM version 0.99...
+- BOOST_DIR - location of Boost version 1.71...
+
 # Conventions
 - Wrap everything in the Djn namespace.
 - Prefer throwing to error checking and return codes (use Djn::Exception, which provides a stacktrace).
@@ -66,3 +73,7 @@ if (myLongVariableNameA == someOtherLongVariableNameA &&
     // ...
 }
 ```
+
+
+# Open questions
+The best way to resolve GLM and BOOST deps is not set in stone. Whether to include a git submodule or include the headers in the EnDjinn vsproj directly is undecided. I am currently leaning toward direct inclusion in the vsproj, but implementation feels like fighting a rising tide. Very open to opinions regarding this.
