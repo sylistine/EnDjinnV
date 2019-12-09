@@ -8,31 +8,28 @@ using namespace Djn::Gfx;
 
 PhysicalDevice::PhysicalDevice(vk::PhysicalDevice dev, VkSurfaceKHR outputSurface) : device(dev), outputSurface(outputSurface)
 {
-    VkResult result;
+    vk::Result result;
     uint32_t tmpListSize;
 
     // Update queue family properties list.
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &tmpListSize, NULL);
-    queueFamilyProperties.resize(tmpListSize);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &tmpListSize, queueFamilyProperties.data());
+    queueFamilyProperties = device.getQueueFamilyProperties();
 
     // Update memory properties for device.
-    vkGetPhysicalDeviceMemoryProperties(dev, &memoryProperties);
+    device.getMemoryProperties(&memoryProperties);
 
     // Get surface capabilities against chosen device
     gfxQueueFamilyIdx = UINT32_MAX;
     presentQueueFamilyIdx = UINT32_MAX;
     for (auto i = 0u; i < queueFamilyProperties.size(); i++) {
-        VkBool32 supportsPresent;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, outputSurface, &supportsPresent);
-        auto graphicsFlag = queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
+        auto supportsPresent = device.getSurfaceSupportKHR(i, outputSurface);
 
-        if (graphicsFlag != 0 && supportsPresent == VK_TRUE) {
+        auto graphicsFlag = queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics;
+        if (graphicsFlag == vk::QueueFlagBits::eGraphics && supportsPresent == VK_TRUE) {
             gfxQueueFamilyIdx = i;
             presentQueueFamilyIdx = i;
             break;
         } else {
-            if (gfxQueueFamilyIdx == UINT32_MAX && graphicsFlag != 0) {
+            if (gfxQueueFamilyIdx == UINT32_MAX && graphicsFlag == vk::QueueFlagBits::eGraphics) {
 
                 if (presentQueueFamilyIdx == UINT32_MAX && supportsPresent == VK_TRUE) {
                     presentQueueFamilyIdx = i;
@@ -43,35 +40,26 @@ PhysicalDevice::PhysicalDevice(vk::PhysicalDevice dev, VkSurfaceKHR outputSurfac
     }
 
     // Update surface capabilities 
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, outputSurface, &surfaceCapabilities);
-    if (result != VK_SUCCESS) {
+    result = device.getSurfaceCapabilitiesKHR(outputSurface, &surfaceCapabilities);
+    if (result != vk::Result::eSuccess) {
         throw Exception("Unable to determine surface capabilities on selected GPU.");
     }
 
     // Update present modes.
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, outputSurface, &tmpListSize, NULL);
-    if (result != VK_SUCCESS) throw Exception("Unable to get physical device surface present modes.");
-    presentModes.resize(tmpListSize);
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(device, outputSurface, &tmpListSize, presentModes.data());
-    if (result != VK_SUCCESS) throw Exception("Unable to get physical device surface present modes.");
+    presentModes = device.getSurfacePresentModesKHR(outputSurface);
 
-    // Update supported output formats.
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, outputSurface, &tmpListSize, NULL);
-    if (result != VK_SUCCESS) throw Exception("Unable to get physical device surface formats.");
-    surfaceFormats.resize(tmpListSize);
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(device, outputSurface, &tmpListSize, surfaceFormats.data());
-    if (result != VK_SUCCESS) throw new std::exception("Unable to get physical device surface formats.");
+    // Update surface formats.
+    surfaceFormats = device.getSurfaceFormatsKHR(outputSurface);
     if (surfaceFormats.size() < 1) throw Exception("Unable to determine surface formats.");
-
-    // We choose the 0th surface format as default.
+    // TODO:: Smarter output format selection.
     outputFormat = surfaceFormats[0].format;
-    if (outputFormat == VK_FORMAT_UNDEFINED) {
-        outputFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    if (outputFormat == vk::Format::eUndefined) {
+        outputFormat = vk::Format::eB8G8R8A8Unorm;
     }
 }
 
 
-bool PhysicalDevice::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const
+bool PhysicalDevice::GetMemoryTypeIndex(uint32_t typeBits, vk::MemoryPropertyFlags flags, uint32_t& index) const
 {
     for (auto i = 0u; i < memoryProperties.memoryTypeCount; i++) {
         if ((typeBits & 1) == 1) {

@@ -2,7 +2,7 @@
 
 #include "EnDjinnV.h"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include <vector>
 
@@ -12,8 +12,8 @@ namespace Djn::Gfx
     {
     public:
         Swapchain() = default;
-        Swapchain(VkDevice device, VkSurfaceKHR surface, VkFormat format,
-            VkSurfaceCapabilitiesKHR surfaceCapabilities,
+        Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format format,
+            vk::SurfaceCapabilitiesKHR surfaceCapabilities,
             std::vector<uint32_t> queueFamilyIndices);
         ~Swapchain();
         Swapchain(Swapchain&& other)
@@ -39,24 +39,24 @@ namespace Djn::Gfx
             }
             return *this;
         }
-        VkSwapchainKHR GetSwapchainKHR() const { return vkSwapchain; }
+        vk::SwapchainKHR GetSwapchainKHR() const { return vkSwapchain; }
         size_t GetImageCount() const { return swapchainImages.size(); }
-        VkImage GetImage(uint32_t idx) const
+        vk::Image GetImage(uint32_t idx) const
         {
             if (idx < 0 || idx >= GetImageCount()) throw Exception("Argument out of range exception.");
             return swapchainImages[idx];
         }
-        VkImageView GetImageView(uint32_t idx) const
+        vk::ImageView GetImageView(uint32_t idx) const
         {
             if (idx < 0 || idx >= GetImageCount()) throw Exception("Argument out of range exception.");
             return swapchainImageViews[idx];
         }
     private:
         bool inited = false;
-        VkDevice vkDevice;
-        VkSwapchainKHR vkSwapchain;
-        std::vector<VkImage> swapchainImages;
-        std::vector<VkImageView> swapchainImageViews;
+        vk::Device vkDevice;
+        vk::SwapchainKHR vkSwapchain;
+        std::vector<vk::Image> swapchainImages;
+        std::vector<vk::ImageView> swapchainImageViews;
         void FreeDeviceMemory();
     };
 }

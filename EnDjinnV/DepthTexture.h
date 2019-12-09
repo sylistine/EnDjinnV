@@ -11,11 +11,11 @@ namespace Djn::Gfx
     public:
         DepthTexture(const Device& device, uint32_t initialWidth, uint32_t initialHeight);
         ~DepthTexture();
-        VkImageView GetView() const { return view; }
+        vk::ImageView GetView() const { return view; }
     private:
-        VkDevice vkDevice;
-        VkImage image;
-        VkDeviceMemory memory;
-        VkImageView view;
+        vk::Device vkDevice;
+        vk::Image image;
+        vk::DeviceMemory memory;
+        vk::ImageView view;
     };
 }

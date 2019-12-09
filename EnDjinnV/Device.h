@@ -26,17 +26,17 @@ namespace Djn::Gfx
         Device& operator=(Device&& other) noexcept;
 
         /// Returns the logical vulkan device.
-        VkDevice GetLogical() const { return logicalDevice; }
+        vk::Device GetLogical() const { return logicalDevice; }
 
         /// Returns the physical device.
-        VkPhysicalDevice GetPhysical() const { return physicalDevice.Get(); }
+        vk::PhysicalDevice GetPhysical() const { return physicalDevice.Get(); }
 
         /// Gets the first index of a memory type that matches typebits and flags.
-        bool GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const;
+        bool GetMemoryTypeIndex(uint32_t typeBits, vk::MemoryPropertyFlags flags, uint32_t& index) const;
 
     private:
         bool inited = false;
-        VkDevice logicalDevice;
+        vk::Device logicalDevice;
         PhysicalDevice physicalDevice;
         void FreeDeviceMemory();
     };

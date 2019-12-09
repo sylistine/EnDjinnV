@@ -24,10 +24,10 @@ Manager* Manager::gfxInstance = NULL;
 
 Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     instance(vkInstance),
-    primaryGPU(VkUtil::GetDefaultPhysicalDevice(instance), surface),
+    primaryGPU(instance.enumeratePhysicalDevices()[0], surface),
     device(primaryGPU)
 {
-    VkResult result;
+    vk::Result result;
     
     auto gfxQueueFamilyIdx = primaryGPU.GetGraphicsQueueFamilyIndex();
     auto presentQueueFamilyIdx = primaryGPU.GetPresentQueueFamilyIndex();
@@ -52,20 +52,21 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     auto vertexShader = CompileShader(compiler, BasicVertexShader);
     auto fragmentShader = CompileShader(compiler, BasicFragmentShader);
 
-    auto vsModuleCI = VkUtil::ShaderModuleCI();
+    vk::ShaderModuleCreateInfo vsModuleCI;
     vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
     vsModuleCI.pCode = vertexShader.data();
-    result = vkCreateShaderModule(device.GetLogical(), &vsModuleCI, NULL, &vertexShaderModule);
-    if (result != VK_SUCCESS) {
+    result = device.GetLogical().createShaderModule(&vsModuleCI, NULL, &vertexShaderModule);
+    if (result != vk::Result::eSuccess) {
         throw Exception("Unable to create vertex shader module.");
     }
 
-    auto fsModuleCI = VkUtil::ShaderModuleCI();
+    vk::ShaderModuleCreateInfo fsModuleCI;
     fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
     fsModuleCI.pCode = fragmentShader.data();
-    result = vkCreateShaderModule(device.GetLogical(), &fsModuleCI, NULL, &fragmentShaderModule);
-    if (result != VK_SUCCESS) {
-        vkDestroyShaderModule(device.GetLogical(), vertexShaderModule, NULL);
+
+    result = device.GetLogical().createShaderModule(&fsModuleCI, NULL, &fragmentShaderModule);
+    if (result != vk::Result::eSuccess) {
+        device.GetLogical().destroyShaderModule(vertexShaderModule);
         throw Exception("Unable to create fragment shader module.");
     }
 
@@ -92,7 +93,7 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     vertexList.push_back(Vertex(vec4(0.5f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
     vertexList.push_back(Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
     Buffer vertexBuffer(
-        device, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        device, vk::BufferUsageFlagBits::eVertexBuffer,
         vertexList.data(), vertexList.size() * sizeof(vertexList[0]));
 
     VkVertexInputBindingDescription vertexInputBindingDesc = {};
@@ -164,60 +165,55 @@ std::vector<unsigned int> Manager::CompileShader(
 Buffer Manager::CreateUniformBuffer(void* data, size_t size)
 {
     return Buffer(
-        device, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        device, vk::BufferUsageFlagBits::eUniformBuffer,
         data, size);
 }
 
 
 void Manager::SetupPrimaryRenderPass()
 {
-    // setup attachments, frame buffers, uniform and vertex buffers, etc...
-    VkSemaphore imageAcquiredSemaphore;
-    auto semaphoreCI = VkUtil::SemaphoreCI();
-    VkResult result = vkCreateSemaphore(device.GetLogical(), &semaphoreCI, NULL, &imageAcquiredSemaphore);
-    if (result != VK_SUCCESS) throw Exception("Unable to create semaphore for image acquisition.");
+    auto d = device.GetLogical();
 
-    uint32_t bufferIdx;
-    result = vkAcquireNextImageKHR(
-        device.GetLogical(),
+    vk::SemaphoreCreateInfo semaphoreCI;
+    auto semaphore = d.createSemaphore(semaphoreCI);
+    
+    auto bufferIdx = d.acquireNextImageKHR(
         swapchain.GetSwapchainKHR(),
         UINT64_MAX,
-        imageAcquiredSemaphore,
-        VK_NULL_HANDLE,
-        &bufferIdx);
+        semaphore,
+        vk::Fence());
 
     const uint32_t attachmentDescCount = 2;
-    VkAttachmentDescription attachmentDescs[attachmentDescCount];
-    attachmentDescs[0] = VkUtil::AttachmentDescription();
+    vk::AttachmentDescription attachmentDescs[attachmentDescCount];
+    // Primary color attachment.
     attachmentDescs[0].format = primaryGPU.GetOutputFormat();
-    attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
-    attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    attachmentDescs[1] = VkUtil::AttachmentDescription();
-    attachmentDescs[1].format = VK_FORMAT_D16_UNORM;
-    attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
-    attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    attachmentDescs[0].samples = vk::SampleCountFlagBits::e1;
+    attachmentDescs[0].loadOp = vk::AttachmentLoadOp::eClear;
+    attachmentDescs[0].storeOp = vk::AttachmentStoreOp::eStore;
+    attachmentDescs[0].stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachmentDescs[0].stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachmentDescs[0].initialLayout = vk::ImageLayout::eUndefined;
+    attachmentDescs[0].finalLayout = vk::ImageLayout::ePresentSrcKHR;
+    // Depth attachment.
+    attachmentDescs[1].format = vk::Format::eD16Unorm;
+    attachmentDescs[1].samples = vk::SampleCountFlagBits::e1;
+    attachmentDescs[1].loadOp = vk::AttachmentLoadOp::eClear;
+    attachmentDescs[1].storeOp = vk::AttachmentStoreOp::eDontCare;
+    attachmentDescs[1].stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    attachmentDescs[1].stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    attachmentDescs[1].initialLayout = vk::ImageLayout::eUndefined;
+    attachmentDescs[1].finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
-    VkAttachmentReference colorReference = {};
+    vk::AttachmentReference colorReference = {};
     colorReference.attachment = 0;
-    colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorReference.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
-    VkAttachmentReference depthReference = {};
+    vk::AttachmentReference depthReference = {};
     depthReference.attachment = 1;
-    depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthReference.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
-    VkSubpassDescription subpassDesc = {};
-    subpassDesc.flags = 0;
-    subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    vk::SubpassDescription subpassDesc = {};
+    subpassDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
     subpassDesc.inputAttachmentCount = 0;
     subpassDesc.pInputAttachments = NULL;
     subpassDesc.colorAttachmentCount = 1;
@@ -227,7 +223,7 @@ void Manager::SetupPrimaryRenderPass()
     subpassDesc.preserveAttachmentCount = 0;
     subpassDesc.pPreserveAttachments = NULL;
 
-    auto renderpassCI = VkUtil::RenderPassCI();
+    vk::RenderPassCreateInfo renderpassCI;
     renderpassCI.attachmentCount = attachmentDescCount;
     renderpassCI.pAttachments = attachmentDescs;
     renderpassCI.subpassCount = 1;
@@ -235,34 +231,35 @@ void Manager::SetupPrimaryRenderPass()
     renderpassCI.dependencyCount = 0;
     renderpassCI.pDependencies = NULL;
 
-    VkRenderPass renderPass;
-    result = vkCreateRenderPass(device.GetLogical(), &renderpassCI, NULL, &renderPass);
+    vk::Result result = d.createRenderPass(&renderpassCI, NULL, &primaryRenderPass);
 
-    vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
+    d.destroySemaphore(semaphore, NULL);
 
-    if (result != VK_SUCCESS) {
-        throw Djn::Exception("Problem creating render pass.");
+    if (result != vk::Result::eSuccess) {
+        throw Exception("Problem creating render pass.");
     }
 
     // Build frame buffer...
-    VkImageView attachments[2];
+    vk::ImageView attachments[2];
     attachments[1] = depthTexture->GetView();
 
-    auto framebufferCI = VkUtil::FrameBufferCI();
-    framebufferCI.renderPass = renderPass;
+    vk::FramebufferCreateInfo framebufferCI;
+    framebufferCI.renderPass = primaryRenderPass;
     framebufferCI.attachmentCount = 2;
     framebufferCI.pAttachments = attachments;
     framebufferCI.width = 512;
     framebufferCI.height = 512;
     framebufferCI.layers = 1;
 
-    primaryFramebuffer = (VkFramebuffer*)malloc(swapchain.GetImageCount() * sizeof(VkFramebuffer));
+    primaryFramebuffer = (vk::Framebuffer*)malloc(swapchain.GetImageCount() * sizeof(vk::Framebuffer));
     for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
         attachments[0] = swapchain.GetImageView(i);
-        result = vkCreateFramebuffer(device.GetLogical(), &framebufferCI, NULL, &primaryFramebuffer[i]);
-        if (result != VK_SUCCESS) {
-            vkDestroyRenderPass(device.GetLogical(), renderPass, NULL);
-            vkDestroySemaphore(device.GetLogical(), imageAcquiredSemaphore, NULL);
+        result = d.createFramebuffer(&framebufferCI, NULL, &primaryFramebuffer[i]);
+        if (result != vk::Result::eSuccess) {
+            for (auto j = i; j > 0; j--) {
+                d.destroyFramebuffer(primaryFramebuffer[j - 1]);
+            }
+            d.destroyRenderPass(primaryRenderPass);
             throw Exception("Unable to create framebuffer.");
         }
     }
@@ -291,7 +288,7 @@ void Manager::SetupPrimaryRenderPass()
          * Build command buffer *INCOMPLETE*
          */
     auto cmdBufferInheritanceInfo = VkUtil::CommandBufferInheritanceInfo();
-    cmdBufferInheritanceInfo.renderPass = renderPass;
+    cmdBufferInheritanceInfo.renderPass = primaryRenderPass;
     //fillout
     auto cmdBufferBeginInfo = VkUtil::CommandBufferBeginInfo();
     cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;

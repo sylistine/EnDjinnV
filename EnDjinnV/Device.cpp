@@ -31,8 +31,8 @@ Device::Device(PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
     deviceCI.pEnabledFeatures = NULL;
     vk::PhysicalDevice vkPhysicalDevice(physicalDevice.Get());
 
-    VkResult result = vkCreateDevice(physicalDevice.Get(), &(VkDeviceCreateInfo)deviceCI, NULL, &logicalDevice);
-    if (result != VK_SUCCESS) throw Exception("Unable to create logical device.");
+    vk::Result result = vkPhysicalDevice.createDevice(&deviceCI, NULL, &logicalDevice);
+    if (result != vk::Result::eSuccess) throw Exception("Unable to create logical device.");
 
     inited = true;
 }
@@ -66,7 +66,7 @@ Device& Device::operator=(Device&& other) noexcept
 }
 
 
-bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags flags, uint32_t& index) const
+bool Djn::Gfx::Device::GetMemoryTypeIndex(uint32_t typeBits, vk::MemoryPropertyFlags flags, uint32_t& index) const
 {
     return physicalDevice.GetMemoryTypeIndex(typeBits, flags, index);
 }

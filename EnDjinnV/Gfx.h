@@ -34,11 +34,11 @@ namespace Djn::Gfx
         CommandPool gfxCommandPool;
         Swapchain swapchain;
         DepthTexture* depthTexture;
-        VkShaderModule vertexShaderModule;
-        VkShaderModule fragmentShaderModule;
+        vk::ShaderModule vertexShaderModule;
+        vk::ShaderModule fragmentShaderModule;
 
-        VkRenderPass primaryRenderPass; // Renderpass responsible for drawing and presenting to the surface.
-        VkFramebuffer* primaryFramebuffer; // Framebuffer for the primary render pass: length should equal swapchain count.
+        vk::RenderPass primaryRenderPass; // Renderpass responsible for drawing and presenting to the surface.
+        vk::Framebuffer* primaryFramebuffer; // Framebuffer for the primary render pass: length should equal swapchain count.
 
         std::vector<unsigned int> CompileShader(
             shaderc::Compiler& compiler,

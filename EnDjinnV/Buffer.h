@@ -13,7 +13,7 @@ namespace Djn::Gfx
     public:
         Buffer(
             const Device& device,
-            VkBufferUsageFlags usage,
+            vk::BufferUsageFlags usage,
             void* data,
             VkDeviceSize size);
         ~Buffer();
@@ -24,9 +24,9 @@ namespace Djn::Gfx
         Buffer(Buffer&& other) = delete;
         Buffer& operator=(Buffer&& other) = delete;
     private:
-        VkDevice vkDevice;
-        VkBuffer buffer;
-        VkDeviceMemory memory;
-        VkMemoryAllocateInfo memoryInfo;
+        vk::Device d;
+        vk::Buffer buffer;
+        vk::DeviceMemory memory;
+        vk::MemoryAllocateInfo memoryInfo;
     };
 }
