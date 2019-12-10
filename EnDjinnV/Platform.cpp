@@ -4,8 +4,6 @@
 
 #include <vector>
 
-#include "VulkanUtil.h"
-
 #ifdef _WIN32
 #include "WindowsPlatformUtil.h"
 #endif
@@ -22,8 +20,7 @@ Platform::Platform(const char* appName)
      * Create vulkan instance and surface for the platform.
      */
      // Create Vulkan Instance.
-    VkApplicationInfo vkAppInfo = {};
-    vkAppInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    vk::ApplicationInfo vkAppInfo;
     vkAppInfo.pApplicationName = appName;
     vkAppInfo.pEngineName = appName;
     vkAppInfo.apiVersion = VK_API_VERSION_1_0;
@@ -33,24 +30,23 @@ Platform::Platform(const char* appName)
 #ifdef _WIN32
     vkExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
-
-    auto vkInstanceCI = VkUtil::InstanceCI();
+    
+    
+    vk::InstanceCreateInfo vkInstanceCI;
     vkInstanceCI.pApplicationInfo = &vkAppInfo;
     vkInstanceCI.enabledExtensionCount = vkExtensions.size();
     vkInstanceCI.ppEnabledExtensionNames = vkExtensions.data();
 
-    VkResult vkResult = vkCreateInstance(&vkInstanceCI, NULL, &vkInstance);
-    if (vkResult != VK_SUCCESS) throw Exception("Unable to create vulkan instance.");
+    vk::Result vkResult = vk::createInstance(&vkInstanceCI, NULL, &vkInstance);
+    if (vkResult != vk::Result::eSuccess) throw Exception("Unable to create vulkan instance.");
 
     // Create vulkan surface from platform window.
 #ifdef _WIN32
-    VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
-    surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    surfaceCreateInfo.pNext = NULL;
+    vk::Win32SurfaceCreateInfoKHR surfaceCreateInfo;
     surfaceCreateInfo.hinstance = XPlat::Windows::GetModuleInstanceHandle();
     surfaceCreateInfo.hwnd = XPlat::Windows::GetWindowHandle();
-    vkResult = vkCreateWin32SurfaceKHR(vkInstance, &surfaceCreateInfo, NULL, &surface);
-    if (vkResult != VK_SUCCESS) throw Exception("Unable to create Win32 surface.");
+    vkResult = vkInstance.createWin32SurfaceKHR(&surfaceCreateInfo, NULL, &surface);
+    if (vkResult != vk::Result::eSuccess) throw Exception("Unable to create Win32 surface.");
 #endif
 }
 

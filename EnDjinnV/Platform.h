@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 namespace Djn
 {
@@ -9,10 +9,10 @@ namespace Djn
     public:
         Platform(const char* appName);
         ~Platform();
-        VkInstance GetVkInstance() const { return vkInstance; }
-        VkSurfaceKHR GetSurface() const { return surface; }
+        vk::Instance GetVkInstance() const { return vkInstance; }
+        vk::SurfaceKHR GetSurface() const { return surface; }
     private:
-        VkInstance vkInstance;
-        VkSurfaceKHR surface;
+        vk::Instance vkInstance;
+        vk::SurfaceKHR surface;
     };
 }

@@ -19,11 +19,12 @@ namespace Djn::Gfx
     class Manager
     {
     public:
-        static void Initialize(VkInstance vkInstance, VkSurfaceKHR surface);
-        static void SetMVP(mat4 mvp);
+        static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
+        static void SetViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix);
+        static void SetVertices(std::vector<Vertex> vertices);
     private:
         static Manager* gfxInstance;
-        Manager(VkInstance vkInstance, VkSurfaceKHR surface);
+        Manager(vk::Instance vkInstance, vk::SurfaceKHR surface);
         ~Manager();
 
         vk::Instance instance;
@@ -39,11 +40,15 @@ namespace Djn::Gfx
 
         vk::RenderPass primaryRenderPass; // Renderpass responsible for drawing and presenting to the surface.
         vk::Framebuffer* primaryFramebuffer; // Framebuffer for the primary render pass: length should equal swapchain count.
+        vk::Buffer vertexBuffer;
+        vk::Buffer mvpBuffer;
 
         std::vector<unsigned int> CompileShader(
             shaderc::Compiler& compiler,
             Shader shader);
         void SetupPrimaryRenderPass();
+        void TeardownPrimaryRenderPass();
+        void SetPrimaryVertexBuffer(std::vector<Vertex> vertices);
         Buffer CreateUniformBuffer(void* data, size_t size);
     };
 }

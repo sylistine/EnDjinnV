@@ -11,18 +11,32 @@
 using namespace Djn::Gfx;
 
 
-void Manager::Initialize(VkInstance vkInstance, VkSurfaceKHR surface)
+// Begin Graphics Manager Statics
+void Manager::Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface)
 {
     if (gfxInstance != NULL) throw Exception("Gfx is already initialized.");
-
     gfxInstance = new Manager(vkInstance, surface);
 }
 
 
+void Manager::SetViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix)
+{
+
+}
+
+
+void Manager::SetVertices(std::vector<Vertex> vertices)
+{
+    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
+    gfxInstance->SetPrimaryVertexBuffer(vertices);
+}
+
+
 Manager* Manager::gfxInstance = NULL;
+// End Graphics Manager Statics
 
 
-Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
+Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     instance(vkInstance),
     primaryGPU(instance.enumeratePhysicalDevices()[0], surface),
     device(primaryGPU)
@@ -86,28 +100,17 @@ Manager::Manager(VkInstance vkInstance, VkSurfaceKHR surface) :
     pipelineShaderStages.push_back(vsPipelineShaderStageCI);
     pipelineShaderStages.push_back(fsPipelineShaderStageCI);
 
-
-    // Create vertex buffer.
-    std::vector<Vertex> vertexList;
-    vertexList.push_back(Vertex(vec4(0.f, 0.f, 0.f, 0.f), vec4(1.f, 0.f, 0.f, 0.f)));
-    vertexList.push_back(Vertex(vec4(0.5f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
-    vertexList.push_back(Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
-    Buffer vertexBuffer(
-        device, vk::BufferUsageFlagBits::eVertexBuffer,
-        vertexList.data(), vertexList.size() * sizeof(vertexList[0]));
-
-    VkVertexInputBindingDescription vertexInputBindingDesc = {};
-    vertexInputBindingDesc.binding = 0;
-    vertexInputBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    vertexInputBindingDesc.stride = sizeof(vertexList[0]);
+    SetupPrimaryRenderPass();
 }
 
 
 Manager::~Manager()
 {
-    vkDestroyShaderModule(device.GetLogical(), fragmentShaderModule, NULL);
-    vkDestroyShaderModule(device.GetLogical(), vertexShaderModule, NULL);
+    TeardownPrimaryRenderPass();
 
+    auto d = device.GetLogical();
+    d.destroyShaderModule(fragmentShaderModule);
+    d.destroyShaderModule(vertexShaderModule);
     delete depthTexture;
 }
 
@@ -293,4 +296,27 @@ void Manager::SetupPrimaryRenderPass()
     auto cmdBufferBeginInfo = VkUtil::CommandBufferBeginInfo();
     cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
     vkBeginCommandBuffer(gfxCommandPool[0], &cmdBufferBeginInfo);
+}
+
+
+void Manager::TeardownPrimaryRenderPass()
+{
+    auto d = device.GetLogical();
+    for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
+        d.destroyFramebuffer(primaryFramebuffer[i]);
+    }
+    d.destroyRenderPass(primaryRenderPass);
+}
+
+
+void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
+{
+    Buffer vertexBuffer(
+        device, vk::BufferUsageFlagBits::eVertexBuffer,
+        vertices.data(), vertices.size() * sizeof(vertices[0]));
+
+    vk::VertexInputBindingDescription vertexInputBindingDesc = {};
+    vertexInputBindingDesc.binding = 0;
+    vertexInputBindingDesc.inputRate = vk::VertexInputRate::eVertex;
+    vertexInputBindingDesc.stride = sizeof(vertices[0]);
 }

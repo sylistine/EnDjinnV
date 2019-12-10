@@ -5,6 +5,12 @@
 #include "Platform.h"
 #include "Gfx.h"
 
+// Temp. These should be moved out later.
+#include "Camera.h"
+#include "Vertex.h"
+
+std::vector<Djn::Gfx::Vertex> GetDefaultVertices();
+
 int main()
 {
 #if defined(_WIN32) && defined(NDEBUG)
@@ -18,7 +24,11 @@ int main()
         Platform platform(appName);
         std::cout << "Initializing graphics." << std::endl;
         Gfx::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
-        //Gfx::Manager::
+
+        Djn::Camera mainCamera;
+        Gfx::Manager::SetViewProjectionMatrices(mainCamera.ViewMatrix(), mainCamera.ProjectionMatrix());
+        Gfx::Manager::SetVertices(GetDefaultVertices());
+
         std::cout << "Looping forever." << std::endl;
         while (true) {}
     } catch (Exception& e) {
@@ -30,4 +40,14 @@ int main()
         std::cout << e.what() << std::endl;
     }
     std::cout << "Terminating EnDjinn" << std::endl;
+}
+
+std::vector<Djn::Gfx::Vertex> GetDefaultVertices()
+{
+    std::vector<Djn::Gfx::Vertex> vertexList;
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.f, 0.f, 0.f, 0.f), vec4(1.f, 0.f, 0.f, 0.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.5f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
+    return vertexList;
+
 }
