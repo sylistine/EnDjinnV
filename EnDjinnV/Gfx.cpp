@@ -255,6 +255,11 @@ void Manager::SetupPrimaryRenderPass()
     framebufferCI.layers = 1;
 
     primaryFramebuffer = (vk::Framebuffer*)malloc(swapchain.GetImageCount() * sizeof(vk::Framebuffer));
+    if (primaryFramebuffer == nullptr) {
+        d.destroyRenderPass(primaryRenderPass);
+        throw Exception("Unable to allocate memory for primary frame buffer.");
+    }
+
     for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
         attachments[0] = swapchain.GetImageView(i);
         result = d.createFramebuffer(&framebufferCI, NULL, &primaryFramebuffer[i]);
@@ -306,6 +311,7 @@ void Manager::TeardownPrimaryRenderPass()
     for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
         d.destroyFramebuffer(primaryFramebuffer[i]);
     }
+    free(primaryFramebuffer);
     d.destroyRenderPass(primaryRenderPass);
 }
 
