@@ -84,14 +84,14 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
         throw Exception("Unable to create fragment shader module.");
     }
 
-    auto vsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
-    vsPipelineShaderStageCI.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vk::PipelineShaderStageCreateInfo vsPipelineShaderStageCI;
+    vsPipelineShaderStageCI.stage = vk::ShaderStageFlagBits::eVertex;
     vsPipelineShaderStageCI.module = vertexShaderModule;
     vsPipelineShaderStageCI.pName = "main";
     vsPipelineShaderStageCI.pSpecializationInfo = NULL;
 
-    auto fsPipelineShaderStageCI = VkUtil::PipelineShaderStageCI();
-    fsPipelineShaderStageCI.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    vk::PipelineShaderStageCreateInfo  fsPipelineShaderStageCI;
+    fsPipelineShaderStageCI.stage = vk::ShaderStageFlagBits::eFragment;
     fsPipelineShaderStageCI.module = fragmentShaderModule;
     fsPipelineShaderStageCI.pName = "main";
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
@@ -290,12 +290,13 @@ void Manager::SetupPrimaryRenderPass()
         /*
          * Build command buffer *INCOMPLETE*
          */
-    auto cmdBufferInheritanceInfo = VkUtil::CommandBufferInheritanceInfo();
+    vk::CommandBufferInheritanceInfo cmdBufferInheritanceInfo;
     cmdBufferInheritanceInfo.renderPass = primaryRenderPass;
     //fillout
-    auto cmdBufferBeginInfo = VkUtil::CommandBufferBeginInfo();
+    vk::CommandBufferBeginInfo cmdBufferBeginInfo;
     cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
-    vkBeginCommandBuffer(gfxCommandPool[0], &cmdBufferBeginInfo);
+    
+    gfxCommandPool[0].begin(&cmdBufferBeginInfo);
 }
 
 

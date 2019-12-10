@@ -8,15 +8,15 @@
 using namespace Djn::Gfx;
 
 
-CommandPool::CommandPool(VkDevice device, uint32_t queueFamilyIndex, uint32_t initialBufferCount) :
+CommandPool::CommandPool(vk::Device device, uint32_t queueFamilyIndex, uint32_t initialBufferCount) :
     vkDevice(device)
 {
-    auto commandPoolCI = VkUtil::CommandPoolCI();
+    vk::CommandPoolCreateInfo commandPoolCI;
     commandPoolCI.queueFamilyIndex = queueFamilyIndex;
-    VkResult result = vkCreateCommandPool(vkDevice, &commandPoolCI, NULL, &pool);
-    if (result != VK_SUCCESS) throw Exception("Unable to create command pool.");
+    vk::Result result = vkDevice.createCommandPool(&commandPoolCI, NULL, &pool);
+    if (result != vk::Result::eSuccess) throw Exception("Unable to create command pool.");
 
-    CreateCommandBuffer(initialBufferCount);
+    CreateCommandBuffers(initialBufferCount);
 
     inited = true;
 }
@@ -28,19 +28,28 @@ CommandPool::~CommandPool()
 }
 
 
-VkCommandBuffer CommandPool::CreateCommandBuffer(uint32_t count)
+void CommandPool::CreateCommandBuffers(uint32_t count)
 {
     if (count < 1) throw Exception("Cannot create 0 buffers.");
+    
+    FreeBuffers();
 
-    VkCommandBuffer newBuffer;
-    auto commandBufferAllocInfo = VkUtil::CommandBufferAllocInfo();
+    buffers.resize(count);
+
+    vk::CommandBufferAllocateInfo commandBufferAllocInfo;
     commandBufferAllocInfo.commandPool = pool;
     commandBufferAllocInfo.commandBufferCount = count;
-    VkResult result = vkAllocateCommandBuffers(vkDevice, &commandBufferAllocInfo, &newBuffer);
-    if (result != VK_SUCCESS) throw Exception("Unable to allocate command buffer.");
 
-    buffers.push_back(newBuffer);
-    return newBuffer;
+    vk::Result result = vkDevice.allocateCommandBuffers(&commandBufferAllocInfo, buffers.data());
+    if (result != vk::Result::eSuccess) throw Exception("Unable to allocate command buffer.");
+}
+
+
+void CommandPool::FreeBuffers()
+{
+    if (buffers.size() < 1) return;
+
+    vkDevice.freeCommandBuffers(pool, buffers.size(), buffers.data());
 }
 
 
@@ -48,7 +57,7 @@ void CommandPool::FreeDeviceMemory() noexcept
 {
     if (!inited) return;
 
-    vkFreeCommandBuffers(vkDevice, pool, buffers.size(), buffers.data());
-    vkDestroyCommandPool(vkDevice, pool, NULL);
+    FreeBuffers();
+    vkDevice.destroyCommandPool(pool);
     inited = false;
 }

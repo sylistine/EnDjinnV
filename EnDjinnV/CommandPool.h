@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include <vector>
 
 namespace Djn::Gfx
@@ -9,7 +9,7 @@ namespace Djn::Gfx
     {
     public:
         CommandPool() = default;
-        CommandPool(VkDevice device, uint32_t queueFamilyIndex, uint32_t initialBufferCount = 0);
+        CommandPool(vk::Device device, uint32_t queueFamilyIndex, uint32_t initialBufferCount = 1);
         ~CommandPool();
         CommandPool(CommandPool&& other) noexcept
         {
@@ -31,21 +31,22 @@ namespace Djn::Gfx
             }
             return *this;
         }
-        VkCommandPool Get() const { return pool; }
+        vk::CommandPool Get() const { return pool; }
         size_t BufferCount() const { return buffers.size(); }
-        VkCommandBuffer operator[](size_t idx)
+        vk::CommandBuffer operator[](size_t idx)
         {
             if (idx < 0 || idx >= BufferCount()) {
                 throw Exception("Argument out of range exception.");
             }
             return buffers[idx];
         }
-        VkCommandBuffer CreateCommandBuffer(uint32_t count = 1);
+        void CreateCommandBuffers(uint32_t count = 1);
     private:
         bool inited = false;
-        VkDevice vkDevice;
-        VkCommandPool pool;
-        std::vector<VkCommandBuffer> buffers;
+        vk::Device vkDevice;
+        vk::CommandPool pool;
+        std::vector<vk::CommandBuffer> buffers;
+        void FreeBuffers();
         void FreeDeviceMemory() noexcept;
     };
 }
