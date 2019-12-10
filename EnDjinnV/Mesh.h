@@ -48,15 +48,14 @@ static const Djn::Gfx::Vertex g_vb_solid_face_colors_Data[] = {
     {vec4(-1, -1, -1, 1.f), vec4(0.f, 1.f, 1.f, 1.f)},
 };
 
-namespace Djn::Gfx
-{
-    class Mesh
-    {
-    public:
-        Mesh();
-        ~Mesh();
-    private:
-        std::vector<Vertex> verts;
-        std::vector<size_t> tris;
-    };
-}
+namespace Djn::Gfx {
+class Mesh {
+ public:
+  Mesh();
+  ~Mesh();
+
+ private:
+  std::vector<Vertex> verts;
+  std::vector<size_t> tris;
+};
+}  // namespace Djn::Gfx
