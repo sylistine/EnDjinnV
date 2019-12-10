@@ -14,16 +14,4 @@ namespace Djn::VkUtil
     {
 
     }
-
-
-    inline std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain)
-    {
-        uint32_t count;
-        VkResult result = vkGetSwapchainImagesKHR(device, swapchain, &count, NULL);
-        if (result != VK_SUCCESS) throw Exception("Unable to get swapchain image count.");
-        std::vector<VkImage> list(count);
-        result = vkGetSwapchainImagesKHR(device, swapchain, &count, list.data());
-        if (result != VK_SUCCESS) throw Exception("Unable to get swapchain images.");
-        return list;
-    }
 }

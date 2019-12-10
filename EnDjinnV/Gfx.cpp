@@ -6,8 +6,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "TempUtil.h"
-
 using namespace Djn::Gfx;
 
 
@@ -96,7 +94,6 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     fsPipelineShaderStageCI.pName = "main";
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
 
-    std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStages;
     pipelineShaderStages.push_back(vsPipelineShaderStageCI);
     pipelineShaderStages.push_back(fsPipelineShaderStageCI);
 
@@ -165,12 +162,12 @@ std::vector<unsigned int> Manager::CompileShader(
 }
 
 
-Buffer Manager::CreateUniformBuffer(void* data, size_t size)
-{
-    return Buffer(
-        device, vk::BufferUsageFlagBits::eUniformBuffer,
-        data, size);
-}
+//Buffer Manager::CreateUniformBuffer(void* data, size_t size)
+//{
+//    return Buffer(
+//        device, vk::BufferUsageFlagBits::eUniformBuffer,
+//        data, size);
+//}
 
 
 void Manager::SetupPrimaryRenderPass()
@@ -271,37 +268,6 @@ void Manager::SetupPrimaryRenderPass()
             throw Exception("Unable to create framebuffer.");
         }
     }
-
-    // Create pipeline.
-    /*VkPipelineLayoutCreateInfo newCI = vk::PipelineLayoutCreateInfo();
-    newCI.pushConstantRangeCount = 0;
-    newCI.pPushConstantRanges = NULL;
-    newCI.setLayoutCount = 1;
-    newCI.pSetLayouts = info.desc_layout.data();
-
-    VkPipelineLayout pipelineLayout;
-
-
-    VkPipeline pipeline;
-    Djn::Gfx::PipelineCodeUtil(
-        device,
-        vertexInputBindingDesc,
-        Vertex::AttributeDescs(),
-        pipelineLayout,
-        pipelineShaderStages,
-        renderPass,
-        &pipeline);*/
-
-        /*
-         * Build command buffer *INCOMPLETE*
-         */
-    vk::CommandBufferInheritanceInfo cmdBufferInheritanceInfo;
-    cmdBufferInheritanceInfo.renderPass = primaryRenderPass;
-    //fillout
-    vk::CommandBufferBeginInfo cmdBufferBeginInfo;
-    cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
-    
-    gfxCommandPool[0].begin(&cmdBufferBeginInfo);
 }
 
 
@@ -322,8 +288,161 @@ void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
         device, vk::BufferUsageFlagBits::eVertexBuffer,
         vertices.data(), vertices.size() * sizeof(vertices[0]));
 
-    vk::VertexInputBindingDescription vertexInputBindingDesc = {};
-    vertexInputBindingDesc.binding = 0;
-    vertexInputBindingDesc.inputRate = vk::VertexInputRate::eVertex;
-    vertexInputBindingDesc.stride = sizeof(vertices[0]);
+    viBindingDesc.binding = 0;
+    viBindingDesc.inputRate = vk::VertexInputRate::eVertex;
+    viBindingDesc.stride = sizeof(vertices[0]);
+}
+
+
+void Manager::SetPrimaryViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix)
+{
+
+}
+
+
+/// This should be called after the primary render pass and buffers (frame, vert, uniform, etc) have been created.
+void Manager::TempPipelineStuff()
+{
+    auto d = device.GetLogical();
+
+    // Create pipeline.
+    vk::DynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];
+    vk::PipelineDynamicStateCreateInfo dynamicState;
+    memset(dynamicStateEnables, 0, sizeof dynamicStateEnables);
+
+    dynamicState.pDynamicStates = dynamicStateEnables;
+    dynamicState.dynamicStateCount = 0;
+
+    // Pipeline descriptor sets.
+    // TODO: this should expand to include texture inputs, time, model matrices, etc.
+    vk::DescriptorSetLayoutBinding descSetBindings;
+    descSetBindings.binding = 0;
+    descSetBindings.descriptorType = vk::DescriptorType::eUniformBuffer;
+    descSetBindings.descriptorCount = 1;
+    descSetBindings.stageFlags = vk::ShaderStageFlagBits::eVertex;
+    descSetBindings.pImmutableSamplers = NULL;
+
+    vk::DescriptorSetLayoutCreateInfo descSetLayoutCI;
+    descSetLayoutCI.bindingCount = 1;
+    descSetLayoutCI.pBindings = &descSetBindings;
+    d.createDescriptorSetLayout(&descSetLayoutCI, NULL, &primaryDescriptorSetLayout);
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutCI;
+    pipelineLayoutCI.pushConstantRangeCount = 0;
+    pipelineLayoutCI.pPushConstantRanges = NULL;
+    pipelineLayoutCI.setLayoutCount = 1;
+    pipelineLayoutCI.pSetLayouts = &primaryDescriptorSetLayout;
+    vk::PipelineLayout pipelineLayout;
+    vk::Result result = d.createPipelineLayout(&pipelineLayoutCI, NULL, &pipelineLayout);
+
+    // Pipeline state CIs
+    auto vertexAtributes = Vertex::AttributeDescs();
+    vk::PipelineVertexInputStateCreateInfo vi;
+    vi.vertexBindingDescriptionCount = 1;
+    vi.pVertexBindingDescriptions = &viBindingDesc;
+    vi.vertexAttributeDescriptionCount = vertexAtributes.size();
+    vi.pVertexAttributeDescriptions = vertexAtributes.data();
+
+    vk::PipelineInputAssemblyStateCreateInfo ia;
+    ia.primitiveRestartEnable = false;
+    ia.topology = vk::PrimitiveTopology::eTriangleList;
+
+    vk::PipelineRasterizationStateCreateInfo rs;
+    rs.polygonMode = vk::PolygonMode::eFill;
+    rs.cullMode = vk::CullModeFlagBits::eBack;
+    rs.frontFace = vk::FrontFace::eClockwise;
+    rs.depthClampEnable = false;
+    rs.rasterizerDiscardEnable = false;
+    rs.depthBiasEnable = false;
+    rs.depthBiasConstantFactor = 0;
+    rs.depthBiasClamp = 0;
+    rs.depthBiasSlopeFactor = 0;
+    rs.lineWidth = 1.0f;
+
+    vk::PipelineColorBlendAttachmentState cBlendAttachmentState[1];
+    cBlendAttachmentState[0].colorWriteMask = vk::ColorComponentFlags(0xf);
+    cBlendAttachmentState[0].blendEnable = false;
+    cBlendAttachmentState[0].alphaBlendOp = vk::BlendOp::eAdd;
+    cBlendAttachmentState[0].colorBlendOp = vk::BlendOp::eAdd;
+    cBlendAttachmentState[0].srcColorBlendFactor = vk::BlendFactor::eZero;
+    cBlendAttachmentState[0].dstColorBlendFactor = vk::BlendFactor::eZero;;
+    cBlendAttachmentState[0].srcAlphaBlendFactor = vk::BlendFactor::eZero;;
+    cBlendAttachmentState[0].dstAlphaBlendFactor = vk::BlendFactor::eZero;;
+
+    vk::PipelineColorBlendStateCreateInfo cb;
+    cb.attachmentCount = 1;
+    cb.pAttachments = cBlendAttachmentState;
+    cb.logicOpEnable = false;
+    cb.logicOp = vk::LogicOp::eNoOp;
+    cb.blendConstants[0] = 1.0f;
+    cb.blendConstants[1] = 1.0f;
+    cb.blendConstants[2] = 1.0f;
+    cb.blendConstants[3] = 1.0f;
+
+    vk::PipelineViewportStateCreateInfo vp = {};
+    vp.viewportCount = 1;
+    dynamicStateEnables[dynamicState.dynamicStateCount++] = vk::DynamicState::eViewport;
+    vp.scissorCount = 1;
+    dynamicStateEnables[dynamicState.dynamicStateCount++] = vk::DynamicState::eScissor;
+    vp.pScissors = NULL;
+    vp.pViewports = NULL;
+
+    vk::PipelineDepthStencilStateCreateInfo ds;
+    ds.depthTestEnable = true;
+    ds.depthWriteEnable = true;
+    ds.depthCompareOp = vk::CompareOp::eLessOrEqual;
+    ds.depthBoundsTestEnable = false;
+    ds.minDepthBounds = 0;
+    ds.maxDepthBounds = 0;
+    ds.stencilTestEnable = false;
+    ds.back.failOp = vk::StencilOp::eKeep;
+    ds.back.passOp = vk::StencilOp::eKeep;
+    ds.back.compareOp = vk::CompareOp::eAlways;
+    ds.back.compareMask = 0;
+    ds.back.reference = 0;
+    ds.back.depthFailOp = vk::StencilOp::eKeep;
+    ds.back.writeMask = 0;
+    ds.front = ds.back;
+
+    vk::PipelineMultisampleStateCreateInfo ms;
+    ms.pSampleMask = NULL;
+    ms.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    ms.sampleShadingEnable = VK_FALSE;
+    ms.alphaToCoverageEnable = VK_FALSE;
+    ms.alphaToOneEnable = VK_FALSE;
+    ms.minSampleShading = 0.0;
+
+    vk::GraphicsPipelineCreateInfo pipelineCI;
+    pipelineCI.layout = pipelineLayout;
+    pipelineCI.basePipelineHandle = vk::Pipeline();
+    pipelineCI.basePipelineIndex = 0;
+    pipelineCI.pVertexInputState = &vi;
+    pipelineCI.pInputAssemblyState = &ia;
+    pipelineCI.pRasterizationState = &rs;
+    pipelineCI.pColorBlendState = &cb;
+    pipelineCI.pTessellationState = NULL;
+    pipelineCI.pMultisampleState = &ms;
+    pipelineCI.pDynamicState = &dynamicState;
+    pipelineCI.pViewportState = &vp;
+    pipelineCI.pDepthStencilState = &ds;
+    pipelineCI.stageCount = pipelineShaderStages.size();
+    pipelineCI.pStages = pipelineShaderStages.data();
+    pipelineCI.renderPass = primaryRenderPass;
+    pipelineCI.subpass = 0;
+
+    result = d.createGraphicsPipelines({}, 1, &pipelineCI, NULL, &primaryPipeline);
+
+    /*
+    * Build command buffer *INCOMPLETE*
+    */
+    vk::CommandBufferInheritanceInfo cmdBufferInheritanceInfo;
+    cmdBufferInheritanceInfo.renderPass = primaryRenderPass;
+    //fillout
+    vk::CommandBufferBeginInfo cmdBufferBeginInfo;
+    cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
+
+    gfxCommandPool[0].begin(&cmdBufferBeginInfo);
+
+
+    // TODO:: Teardown pass that cleans up all the junk we created here.
 }

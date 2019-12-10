@@ -9,7 +9,6 @@ using namespace Djn::Gfx;
 PhysicalDevice::PhysicalDevice(vk::PhysicalDevice dev, VkSurfaceKHR outputSurface) : device(dev), outputSurface(outputSurface)
 {
     vk::Result result;
-    uint32_t tmpListSize;
 
     // Update queue family properties list.
     queueFamilyProperties = device.getQueueFamilyProperties();

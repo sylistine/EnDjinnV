@@ -201,7 +201,6 @@
     <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SwapChain.h" />
-    <ClInclude Include="TempUtil.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Types2d.h" />
     <ClInclude Include="Types3d.h" />

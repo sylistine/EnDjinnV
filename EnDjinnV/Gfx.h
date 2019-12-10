@@ -37,11 +37,16 @@ namespace Djn::Gfx
         DepthTexture* depthTexture;
         vk::ShaderModule vertexShaderModule;
         vk::ShaderModule fragmentShaderModule;
+        std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStages;
 
-        vk::RenderPass primaryRenderPass; // Renderpass responsible for drawing and presenting to the surface.
-        vk::Framebuffer* primaryFramebuffer; // Framebuffer for the primary render pass: length should equal swapchain count.
-        vk::Buffer vertexBuffer;
-        vk::Buffer mvpBuffer;
+        // Primary render pass steps.
+        vk::RenderPass primaryRenderPass; // draws to the main output surface.
+        vk::Framebuffer* primaryFramebuffer; // framebuffers for primary swapchain.
+        vk::Buffer vertexBuffer; // buffer for just the one set of verts.
+        vk::VertexInputBindingDescription viBindingDesc;
+        vk::Buffer viewProjectionBuffer; // buffer for the main camera view/projection matrices.
+        vk::DescriptorSetLayout primaryDescriptorSetLayout;
+        vk::Pipeline primaryPipeline;
 
         std::vector<unsigned int> CompileShader(
             shaderc::Compiler& compiler,
@@ -49,6 +54,7 @@ namespace Djn::Gfx
         void SetupPrimaryRenderPass();
         void TeardownPrimaryRenderPass();
         void SetPrimaryVertexBuffer(std::vector<Vertex> vertices);
-        Buffer CreateUniformBuffer(void* data, size_t size);
+        void SetPrimaryViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix);
+        void TempPipelineStuff();
     };
 }

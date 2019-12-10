@@ -18,35 +18,35 @@ Vertex::~Vertex()
 {}
 
 
-std::vector<VkVertexInputAttributeDescription> Vertex::AttributeDescs()
+std::vector<vk::VertexInputAttributeDescription> Vertex::AttributeDescs()
 {
-    std::vector<VkVertexInputAttributeDescription> attributes;
+    std::vector<vk::VertexInputAttributeDescription> attributes;
 
-    VkVertexInputAttributeDescription positionAttribute;
+    vk::VertexInputAttributeDescription positionAttribute;
     positionAttribute.location = 0;
     positionAttribute.binding = 0;
-    positionAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    positionAttribute.format = vk::Format::eR32G32B32A32Sfloat;
     positionAttribute.offset = 0;
     attributes.push_back(positionAttribute);
 
-    VkVertexInputAttributeDescription normalAttribute;
+    vk::VertexInputAttributeDescription normalAttribute;
     normalAttribute.location = 2;
     normalAttribute.binding = 0;
-    normalAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    normalAttribute.format = vk::Format::eR32G32B32A32Sfloat;
     normalAttribute.offset = 16;
     attributes.push_back(normalAttribute);
 
-    VkVertexInputAttributeDescription uvAttribute;
+    vk::VertexInputAttributeDescription uvAttribute;
     uvAttribute.location = 3;
     uvAttribute.binding = 0;
-    uvAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    uvAttribute.format = vk::Format::eR32G32B32A32Sfloat;
     uvAttribute.offset = 32;
     attributes.push_back(uvAttribute);
 
-    VkVertexInputAttributeDescription colorAttribute;
+    vk::VertexInputAttributeDescription colorAttribute;
     colorAttribute.location = 4;
     colorAttribute.binding = 0;
-    colorAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    colorAttribute.format = vk::Format::eR32G32B32A32Sfloat;
     colorAttribute.offset = 48;
     attributes.push_back(colorAttribute);
 

@@ -143,9 +143,6 @@
     <ClInclude Include="PhysicalDevice.h">
       <Filter>Header Files\Gfx</Filter>
     </ClInclude>
-    <ClInclude Include="TempUtil.h">
-      <Filter>Header Files\Gfx</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
