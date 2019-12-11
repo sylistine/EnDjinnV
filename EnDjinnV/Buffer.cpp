@@ -54,11 +54,23 @@ Buffer::Buffer(
     // Bind buffer and memory.
     // TODO: Can we bind buffer and memory before mapping and copying the data?
     d.bindBufferMemory(buffer, memory, 0);
+
+    inited = true;
 }
 
 
 Buffer::~Buffer()
 {
+    FreeMemory();
+}
+
+
+void Buffer::FreeMemory()
+{
+    if (!inited) return;
+
     d.freeMemory(memory, NULL);
     d.destroyBuffer(buffer, NULL);
+
+    inited = false;
 }

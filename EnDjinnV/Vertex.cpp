@@ -36,6 +36,7 @@ std::vector<vk::VertexInputAttributeDescription> Vertex::AttributeDescs()
     normalAttribute.offset = 16;
     attributes.push_back(normalAttribute);
 
+    // TODO: uvs only need to be a float2
     vk::VertexInputAttributeDescription uvAttribute;
     uvAttribute.location = 3;
     uvAttribute.binding = 0;

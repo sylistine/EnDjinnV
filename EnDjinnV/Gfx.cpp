@@ -19,7 +19,8 @@ void Manager::Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface)
 
 void Manager::SetViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix)
 {
-
+    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
+    gfxInstance->SetPrimaryViewProjectionMatrices(viewMatrix, projectionMatrix);
 }
 
 
@@ -162,14 +163,6 @@ std::vector<unsigned int> Manager::CompileShader(
 }
 
 
-//Buffer Manager::CreateUniformBuffer(void* data, size_t size)
-//{
-//    return Buffer(
-//        device, vk::BufferUsageFlagBits::eUniformBuffer,
-//        data, size);
-//}
-
-
 void Manager::SetupPrimaryRenderPass()
 {
     auto d = device.GetLogical();
@@ -268,53 +261,11 @@ void Manager::SetupPrimaryRenderPass()
             throw Exception("Unable to create framebuffer.");
         }
     }
-}
 
-
-void Manager::TeardownPrimaryRenderPass()
-{
-    auto d = device.GetLogical();
-    for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
-        d.destroyFramebuffer(primaryFramebuffer[i]);
-    }
-    free(primaryFramebuffer);
-    d.destroyRenderPass(primaryRenderPass);
-}
-
-
-void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
-{
-    Buffer vertexBuffer(
-        device, vk::BufferUsageFlagBits::eVertexBuffer,
-        vertices.data(), vertices.size() * sizeof(vertices[0]));
-
-    viBindingDesc.binding = 0;
-    viBindingDesc.inputRate = vk::VertexInputRate::eVertex;
-    viBindingDesc.stride = sizeof(vertices[0]);
-}
-
-
-void Manager::SetPrimaryViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix)
-{
-
-}
-
-
-/// This should be called after the primary render pass and buffers (frame, vert, uniform, etc) have been created.
-void Manager::TempPipelineStuff()
-{
-    auto d = device.GetLogical();
-
-    // Create pipeline.
-    vk::DynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];
-    vk::PipelineDynamicStateCreateInfo dynamicState;
-    memset(dynamicStateEnables, 0, sizeof dynamicStateEnables);
-
-    dynamicState.pDynamicStates = dynamicStateEnables;
-    dynamicState.dynamicStateCount = 0;
-
-    // Pipeline descriptor sets.
-    // TODO: this should expand to include texture inputs, time, model matrices, etc.
+    // Descriptor sets.
+    // These prewarm various buffers that our shaders will reference later.
+    // Presently, the only buffer we use is the view/projection buffer.
+    // In the future, this will include textures sampled by the fragment shader, time keeping, etc.
     vk::DescriptorSetLayoutBinding descSetBindings;
     descSetBindings.binding = 0;
     descSetBindings.descriptorType = vk::DescriptorType::eUniformBuffer;
@@ -334,6 +285,87 @@ void Manager::TempPipelineStuff()
     pipelineLayoutCI.pSetLayouts = &primaryDescriptorSetLayout;
     vk::PipelineLayout pipelineLayout;
     vk::Result result = d.createPipelineLayout(&pipelineLayoutCI, NULL, &pipelineLayout);
+
+    // Allocate the actual set.
+    vk::DescriptorPoolSize descPoolSize;
+    descPoolSize.descriptorCount = 1;
+
+    vk::DescriptorPoolCreateInfo descPoolCI;
+    descPoolCI.maxSets = 1;
+    descPoolCI.poolSizeCount = 1;
+    descPoolCI.pPoolSizes = &descPoolSize;
+
+    result = d.createDescriptorPool(&descPoolCI, NULL, &primaryDescriptorPool);
+
+    vk::DescriptorSetAllocateInfo descSetAllocInfo;
+    descSetAllocInfo.descriptorPool = primaryDescriptorPool;
+    descSetAllocInfo.descriptorSetCount = 1;
+    descSetAllocInfo.pSetLayouts = &primaryDescriptorSetLayout;
+    result = d.allocateDescriptorSets(&descSetAllocInfo, NULL, &primaryDescriptorSet);
+}
+
+
+void Manager::TeardownPrimaryRenderPass()
+{
+    auto d = device.GetLogical();
+    for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
+        d.destroyFramebuffer(primaryFramebuffer[i]);
+    }
+    free(primaryFramebuffer);
+    d.destroyRenderPass(primaryRenderPass);
+}
+
+
+void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
+{
+    vertexBuffer = Buffer(
+        device, vk::BufferUsageFlagBits::eVertexBuffer,
+        vertices.data(), vertices.size() * sizeof(vertices[0]));
+
+    viBindingDesc.binding = 0;
+    viBindingDesc.inputRate = vk::VertexInputRate::eVertex;
+    viBindingDesc.stride = sizeof(vertices[0]);
+}
+
+
+void Manager::SetPrimaryViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix)
+{
+    auto viewAndProjectionMatrices = { viewMatrix, projectionMatrix };
+    // TODO: this buffer should probably only be created once, with contents updated each frame.
+    viewProjectionBuffer = Buffer(
+        device, vk::BufferUsageFlagBits::eUniformBuffer,
+        &viewAndProjectionMatrices, sizeof(mat4) * 2);
+
+    // Write to the set.
+    vk::DescriptorBufferInfo descBufferInfo;
+    descBufferInfo.buffer = viewProjectionBuffer.Get();
+    descBufferInfo.offset = 0;
+    descBufferInfo.range = sizeof(mat4) * 2;
+
+    vk::WriteDescriptorSet writeInfo;
+    writeInfo.dstSet = primaryDescriptorSet;
+    writeInfo.descriptorCount = 1;
+    writeInfo.descriptorType = vk::DescriptorType::eUniformBuffer;
+    writeInfo.pBufferInfo = &descBufferInfo;
+    writeInfo.dstArrayElement = 0;
+    writeInfo.dstBinding = 0;
+
+    device.GetLogical().updateDescriptorSets(1, &writeInfo, 0, NULL);
+}
+
+
+/// This should be called after the primary render pass and buffers (frame, vert, uniform, etc) have been created.
+void Manager::TempPipelineStuff()
+{
+    auto d = device.GetLogical();
+
+    // Create pipeline.
+    vk::DynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];
+    vk::PipelineDynamicStateCreateInfo dynamicState;
+    memset(dynamicStateEnables, 0, sizeof dynamicStateEnables);
+
+    dynamicState.pDynamicStates = dynamicStateEnables;
+    dynamicState.dynamicStateCount = 0;
 
     // Pipeline state CIs
     auto vertexAtributes = Vertex::AttributeDescs();
@@ -407,9 +439,9 @@ void Manager::TempPipelineStuff()
     vk::PipelineMultisampleStateCreateInfo ms;
     ms.pSampleMask = NULL;
     ms.rasterizationSamples = vk::SampleCountFlagBits::e1;
-    ms.sampleShadingEnable = VK_FALSE;
-    ms.alphaToCoverageEnable = VK_FALSE;
-    ms.alphaToOneEnable = VK_FALSE;
+    ms.sampleShadingEnable = false;
+    ms.alphaToCoverageEnable = false;
+    ms.alphaToOneEnable = false;
     ms.minSampleShading = 0.0;
 
     vk::GraphicsPipelineCreateInfo pipelineCI;

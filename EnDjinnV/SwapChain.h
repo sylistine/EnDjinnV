@@ -16,7 +16,7 @@ namespace Djn::Gfx
             vk::SurfaceCapabilitiesKHR surfaceCapabilities,
             std::vector<uint32_t> queueFamilyIndices);
         ~Swapchain();
-        Swapchain(Swapchain&& other)
+        Swapchain(Swapchain&& other) noexcept
         {
             this->FreeDeviceMemory();
             this->vkDevice = other.vkDevice;
@@ -26,7 +26,7 @@ namespace Djn::Gfx
             this->inited = true;
             other.inited = false;
         }
-        Swapchain& operator=(Swapchain&& other)
+        Swapchain& operator=(Swapchain&& other) noexcept
         {
             if (this != &other) {
                 this->FreeDeviceMemory();
