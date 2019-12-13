@@ -31,6 +31,13 @@ void Manager::SetVertices(std::vector<Vertex> vertices)
 }
 
 
+void Manager::TempBuildAndRunPipeline()
+{
+    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
+    gfxInstance->TempPipelineStuff();
+}
+
+
 Manager* Manager::gfxInstance = NULL;
 // End Graphics Manager Statics
 
@@ -167,15 +174,6 @@ void Manager::SetupPrimaryRenderPass()
 {
     auto d = device.GetLogical();
 
-    vk::SemaphoreCreateInfo semaphoreCI;
-    auto semaphore = d.createSemaphore(semaphoreCI);
-    
-    auto bufferIdx = d.acquireNextImageKHR(
-        swapchain.GetSwapchainKHR(),
-        UINT64_MAX,
-        semaphore,
-        vk::Fence());
-
     const uint32_t attachmentDescCount = 2;
     vk::AttachmentDescription attachmentDescs[attachmentDescCount];
     // Primary color attachment.
@@ -225,8 +223,6 @@ void Manager::SetupPrimaryRenderPass()
     renderpassCI.pDependencies = NULL;
 
     vk::Result result = d.createRenderPass(&renderpassCI, NULL, &primaryRenderPass);
-
-    d.destroySemaphore(semaphore, NULL);
 
     if (result != vk::Result::eSuccess) {
         throw Exception("Problem creating render pass.");
@@ -283,8 +279,7 @@ void Manager::SetupPrimaryRenderPass()
     pipelineLayoutCI.pPushConstantRanges = NULL;
     pipelineLayoutCI.setLayoutCount = 1;
     pipelineLayoutCI.pSetLayouts = &primaryDescriptorSetLayout;
-    vk::PipelineLayout pipelineLayout;
-    vk::Result result = d.createPipelineLayout(&pipelineLayoutCI, NULL, &pipelineLayout);
+    result = d.createPipelineLayout(&pipelineLayoutCI, NULL, &primaryPipelineLayout);
 
     // Allocate the actual set.
     vk::DescriptorPoolSize descPoolSize;
@@ -301,7 +296,7 @@ void Manager::SetupPrimaryRenderPass()
     descSetAllocInfo.descriptorPool = primaryDescriptorPool;
     descSetAllocInfo.descriptorSetCount = 1;
     descSetAllocInfo.pSetLayouts = &primaryDescriptorSetLayout;
-    result = d.allocateDescriptorSets(&descSetAllocInfo, NULL, &primaryDescriptorSet);
+    result = d.allocateDescriptorSets(&descSetAllocInfo, &primaryDescriptorSet);
 }
 
 
@@ -372,7 +367,7 @@ void Manager::TempPipelineStuff()
     vk::PipelineVertexInputStateCreateInfo vi;
     vi.vertexBindingDescriptionCount = 1;
     vi.pVertexBindingDescriptions = &viBindingDesc;
-    vi.vertexAttributeDescriptionCount = vertexAtributes.size();
+    vi.vertexAttributeDescriptionCount = (uint32_t)vertexAtributes.size();
     vi.pVertexAttributeDescriptions = vertexAtributes.data();
 
     vk::PipelineInputAssemblyStateCreateInfo ia;
@@ -445,7 +440,7 @@ void Manager::TempPipelineStuff()
     ms.minSampleShading = 0.0;
 
     vk::GraphicsPipelineCreateInfo pipelineCI;
-    pipelineCI.layout = pipelineLayout;
+    pipelineCI.layout = primaryPipelineLayout;
     pipelineCI.basePipelineHandle = vk::Pipeline();
     pipelineCI.basePipelineIndex = 0;
     pipelineCI.pVertexInputState = &vi;
@@ -457,24 +452,97 @@ void Manager::TempPipelineStuff()
     pipelineCI.pDynamicState = &dynamicState;
     pipelineCI.pViewportState = &vp;
     pipelineCI.pDepthStencilState = &ds;
-    pipelineCI.stageCount = pipelineShaderStages.size();
+    pipelineCI.stageCount = (uint32_t)pipelineShaderStages.size();
     pipelineCI.pStages = pipelineShaderStages.data();
     pipelineCI.renderPass = primaryRenderPass;
     pipelineCI.subpass = 0;
 
-    result = d.createGraphicsPipelines({}, 1, &pipelineCI, NULL, &primaryPipeline);
+    vk::Result result = d.createGraphicsPipelines({}, 1, &pipelineCI, NULL, &primaryPipeline);
+    if (result != vk::Result::eSuccess) throw Exception("Unable to create graphics pipeline.");
 
-    /*
-    * Build command buffer *INCOMPLETE*
-    */
-    vk::CommandBufferInheritanceInfo cmdBufferInheritanceInfo;
-    cmdBufferInheritanceInfo.renderPass = primaryRenderPass;
-    //fillout
-    vk::CommandBufferBeginInfo cmdBufferBeginInfo;
-    cmdBufferBeginInfo.pInheritanceInfo = &cmdBufferInheritanceInfo;
+    // Command buffer etc
+    vk::ClearColorValue clearValueColor;
+    vk::ClearValue clearValue;
+    clearValue.color = clearValueColor;
+    clearValue.depthStencil.depth = 1.0f;
+    clearValue.depthStencil.stencil = 0;
 
-    gfxCommandPool[0].begin(&cmdBufferBeginInfo);
+    vk::SemaphoreCreateInfo semaphoreCI;
+    vk::Semaphore imageAcqSem = d.createSemaphore(semaphoreCI);
 
+    uint32_t imgIdx;
+    result = d.acquireNextImageKHR(swapchain.GetSwapchainKHR(), UINT64_MAX, imageAcqSem, vk::Fence(), &imgIdx);
+    if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
+
+    vk::RenderPassBeginInfo rpBeginInfo;
+    rpBeginInfo.renderPass = primaryRenderPass;
+    rpBeginInfo.framebuffer = primaryFramebuffer[imgIdx];
+    rpBeginInfo.renderArea.offset.x = 0;
+    rpBeginInfo.renderArea.offset.y = 0;
+    rpBeginInfo.renderArea.extent.width = 512;
+    rpBeginInfo.renderArea.extent.height = 512;
+    rpBeginInfo.clearValueCount = 1;
+    rpBeginInfo.pClearValues = &clearValue;
+
+    auto cmdBuffer = gfxCommandPool[0];
+    vk::CommandBufferBeginInfo commandBufferBeginInfo;
+    cmdBuffer.begin(commandBufferBeginInfo);
+    cmdBuffer.beginRenderPass(&rpBeginInfo, vk::SubpassContents::eInline);
+    cmdBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, primaryPipeline);
+    cmdBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, primaryPipelineLayout,
+        0, 1, &primaryDescriptorSet, 0, NULL);
+    std::cout << &vertexBuffer.Get() << std::endl;
+    vk::DeviceSize offsets[1];
+    offsets[0] = 0;
+    cmdBuffer.bindVertexBuffers(0, 1, &vertexBuffer.Get(), offsets);
+    vk::Viewport viewport;
+    viewport.width = 512;
+    viewport.height = 512;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    viewport.x = 0;
+    viewport.y = 0;
+    cmdBuffer.setViewport(0, 1, &viewport);
+    vk::Rect2D scissor;
+    scissor.extent.width = 512;
+    scissor.extent.height = 512;
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    cmdBuffer.setScissor(0, 1, &scissor);
+    cmdBuffer.draw(3, 1, 0, 0);
+    cmdBuffer.endRenderPass();
+    cmdBuffer.end();
+    vk::CommandBuffer commandBuffers[1];
+    commandBuffers[0] = cmdBuffer;
+
+    auto fenceCI = vk::FenceCreateInfo();
+    auto drawFence = d.createFence(fenceCI);
+    vk::PipelineStageFlags pipelineStageFlags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    vk::SubmitInfo submitInfo;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &imageAcqSem;
+    submitInfo.pWaitDstStageMask = &pipelineStageFlags;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = commandBuffers;
+
+    result = device.GetGraphicsQueue().submit(1, &submitInfo, drawFence);
+    if (result != vk::Result::eSuccess) throw Exception("Unable to submit graphics queue.");
+
+    vk::PresentInfoKHR presentInfoKHR;
+    presentInfoKHR.swapchainCount = 1;
+    presentInfoKHR.pSwapchains = &swapchain.GetSwapchainKHR();
+    presentInfoKHR.pImageIndices = &imgIdx;
+
+    do {
+        result = d.waitForFences(1, &drawFence, true, 1000000000);
+    } while (result == vk::Result::eTimeout);
+    std::cout << "Waited for fences. Final result: " << vk::to_string(result) << std::endl;
+
+    result = device.GetPresentQueue().presentKHR(&presentInfoKHR);
+    if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
 
     // TODO:: Teardown pass that cleans up all the junk we created here.
 }
+
+
+

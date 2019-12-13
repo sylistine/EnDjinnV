@@ -49,7 +49,7 @@ void CommandPool::FreeBuffers()
 {
     if (buffers.size() < 1) return;
 
-    vkDevice.freeCommandBuffers(pool, buffers.size(), buffers.data());
+    vkDevice.freeCommandBuffers(pool, (uint32_t)buffers.size(), buffers.data());
 }
 
 

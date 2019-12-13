@@ -22,6 +22,7 @@ namespace Djn::Gfx
         static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
         static void SetViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix);
         static void SetVertices(std::vector<Vertex> vertices);
+        static void TempBuildAndRunPipeline();
     private:
         static Manager* gfxInstance;
         Manager(vk::Instance vkInstance, vk::SurfaceKHR surface);
@@ -48,6 +49,7 @@ namespace Djn::Gfx
         vk::DescriptorSetLayout primaryDescriptorSetLayout;
         vk::DescriptorPool primaryDescriptorPool;
         vk::DescriptorSet primaryDescriptorSet;
+        vk::PipelineLayout primaryPipelineLayout;
         vk::Pipeline primaryPipeline;
 
         std::vector<unsigned int> CompileShader(

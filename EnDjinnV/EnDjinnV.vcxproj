@@ -190,7 +190,6 @@
     <ClInclude Include="EnDjinnV.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="Gfx.h" />
-    <ClInclude Include="Math.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="PhysicalDevice.h" />
     <ClInclude Include="Platform.h" />
@@ -202,18 +201,9 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="Transform.h" />
-    <ClInclude Include="Types2d.h" />
-    <ClInclude Include="Types3d.h" />
-    <ClInclude Include="Types4d.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VulkanUtil.h" />
     <ClInclude Include="WindowsPlatformUtil.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="vertex.glsl">
-      <SubType>
-      </SubType>
-    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

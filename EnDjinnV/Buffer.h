@@ -11,6 +11,7 @@ namespace Djn::Gfx
     class Buffer
     {
     public:
+        Buffer() {}
         Buffer(
             const Device& device,
             vk::BufferUsageFlags usage,

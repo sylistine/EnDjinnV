@@ -31,6 +31,10 @@ namespace Djn::Gfx
         /// Returns the physical device.
         vk::PhysicalDevice GetPhysical() const { return physicalDevice.Get(); }
 
+        vk::Queue GetGraphicsQueue() const { return gfxQueue; }
+
+        vk::Queue GetPresentQueue() const { return presentQueue; }
+
         /// Gets the first index of a memory type that matches typebits and flags.
         bool GetMemoryTypeIndex(uint32_t typeBits, vk::MemoryPropertyFlags flags, uint32_t& index) const;
 
@@ -38,6 +42,8 @@ namespace Djn::Gfx
         bool inited = false;
         vk::Device logicalDevice;
         PhysicalDevice physicalDevice;
+        vk::Queue gfxQueue;
+        vk::Queue presentQueue;
         void FreeDeviceMemory();
     };
 }

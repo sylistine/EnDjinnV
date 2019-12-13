@@ -14,5 +14,7 @@ namespace Djn
     private:
         vk::Instance vkInstance;
         vk::SurfaceKHR surface;
+        VkDebugReportCallbackEXT callback;
+        bool debugCallbackInited = false;
     };
 }

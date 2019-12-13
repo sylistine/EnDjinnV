@@ -22,12 +22,14 @@ int main()
     try {
         std::cout << "Constructing platform." << std::endl;
         Platform platform(appName);
+
         std::cout << "Initializing graphics." << std::endl;
         Gfx::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
 
         Djn::Camera mainCamera;
         Gfx::Manager::SetViewProjectionMatrices(mainCamera.ViewMatrix(), mainCamera.ProjectionMatrix());
         Gfx::Manager::SetVertices(GetDefaultVertices());
+        Gfx::Manager::TempBuildAndRunPipeline();
 
         std::cout << "Looping forever." << std::endl;
         while (true) {}
@@ -49,5 +51,4 @@ std::vector<Djn::Gfx::Vertex> GetDefaultVertices()
     vertexList.push_back(Djn::Gfx::Vertex(vec4(0.5f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
     vertexList.push_back(Djn::Gfx::Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
     return vertexList;
-
 }

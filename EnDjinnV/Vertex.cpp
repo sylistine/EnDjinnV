@@ -5,12 +5,19 @@
 using namespace Djn::Gfx;
 
 
-Vertex::Vertex() : position(vec4(0, 0, 0, 0)), color(vec4(0, 0, 0, 0))
+Vertex::Vertex() :
+    position(vec4(0, 0, 0, 0)),
+    normal(vec4(0, 1, 0, 0)),
+    uv(vec4(0, 0, 0, 0)),
+    color(vec4(0, 0, 0, 0))
 {}
 
 
 Vertex::Vertex(vec4 position, vec4 color) :
-    position(position), color(color)
+    position(position),
+    normal(vec4(0, 1, 0, 0)),
+    uv(vec4(0, 0, 0, 0)),
+    color(color)
 {}
 
 

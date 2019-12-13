@@ -26,13 +26,16 @@ Device::Device(PhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
     deviceCI.pQueueCreateInfos = &deviceQueueCI;
     deviceCI.enabledLayerCount = 0;
     deviceCI.ppEnabledLayerNames = NULL;
-    deviceCI.enabledExtensionCount = deviceExtensions.size();
+    deviceCI.enabledExtensionCount = (uint32_t)deviceExtensions.size();
     deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
     deviceCI.pEnabledFeatures = NULL;
     vk::PhysicalDevice vkPhysicalDevice(physicalDevice.Get());
 
     vk::Result result = vkPhysicalDevice.createDevice(&deviceCI, NULL, &logicalDevice);
     if (result != vk::Result::eSuccess) throw Exception("Unable to create logical device.");
+
+    logicalDevice.getQueue(physicalDevice.GetGraphicsQueueFamilyIndex(), 0, &gfxQueue);
+    logicalDevice.getQueue(physicalDevice.GetPresentQueueFamilyIndex(), 0, &presentQueue);
 
     inited = true;
 }

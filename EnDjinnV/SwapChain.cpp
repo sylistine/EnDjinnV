@@ -42,21 +42,23 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format forma
         surfaceTransformFlagBits = surfaceCapabilities.currentTransform;
     }
 
-    vk::CompositeAlphaFlagBitsKHR compositeAlpha;
     vk::CompositeAlphaFlagBitsKHR compositeAlphaFlags[4] = {
         vk::CompositeAlphaFlagBitsKHR::eOpaque,
         vk::CompositeAlphaFlagBitsKHR::ePreMultiplied,
         vk::CompositeAlphaFlagBitsKHR::ePostMultiplied,
         vk::CompositeAlphaFlagBitsKHR::eInherit
     };
+    uint32_t compositeAlphaIdx = UINT32_MAX;
     for (uint32_t i = 0; i < sizeof(compositeAlphaFlags) / sizeof(compositeAlphaFlags[0]); i++) {
         if (surfaceCapabilities.supportedCompositeAlpha & compositeAlphaFlags[i]) {
-            compositeAlpha = compositeAlphaFlags[i];
+            compositeAlphaIdx = i;
             break;
         }
     }
+    if (compositeAlphaIdx == UINT32_MAX) throw Exception("Unable to select correct composite alpha type.");
 
     // create swapchain
+    vk::SwapchainKHR oldSwapchain;
     vk::SwapchainCreateInfoKHR swapchainCI;
     swapchainCI.surface = surface;
     swapchainCI.minImageCount = surfaceCapabilities.minImageCount;
@@ -66,14 +68,14 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format forma
     swapchainCI.imageArrayLayers = 1;
     swapchainCI.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
     swapchainCI.preTransform = surfaceTransformFlagBits;
-    swapchainCI.compositeAlpha = compositeAlpha;
+    swapchainCI.compositeAlpha = compositeAlphaFlags[compositeAlphaIdx];
     swapchainCI.presentMode = vk::PresentModeKHR::eFifo; // Default, always supported.
     swapchainCI.clipped = true;
-    // swapchainCI.oldSwapchain = VK_NULL_HANDLE;
+    swapchainCI.oldSwapchain = oldSwapchain;
 
     if (queueFamilyIndices.size() > 0) {
         swapchainCI.imageSharingMode = vk::SharingMode::eConcurrent;
-        swapchainCI.queueFamilyIndexCount = queueFamilyIndices.size();
+        swapchainCI.queueFamilyIndexCount = (uint32_t)queueFamilyIndices.size();
         swapchainCI.pQueueFamilyIndices = queueFamilyIndices.data();
     } else {
         swapchainCI.imageSharingMode = vk::SharingMode::eExclusive;
