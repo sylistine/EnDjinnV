@@ -34,12 +34,14 @@ int main()
         std::cout << "Looping forever." << std::endl;
         while (true) {}
     } catch (Exception& e) {
-        std::cout << "Djn::Exception caught." << std::endl;
+        std::cout << std::endl << "******** Djn::Exception ********" << std::endl;
         std::cout << e.what() << std::endl;
         std::cout << e.StackTrace() << std::endl;
+        std::cout << "************************" << std::endl;
     } catch (std::exception & e) {
-        std::cout << "Exception caught." << std::endl;
+        std::cout << std::endl << "******** std::exception ********" << std::endl;
         std::cout << e.what() << std::endl;
+        std::cout << "************************" << std::endl;
     }
     std::cout << "Terminating EnDjinn" << std::endl;
 }

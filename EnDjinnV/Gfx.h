@@ -1,10 +1,8 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-#include <shaderc/shaderc.hpp>
 
 #include "VulkanUtil.h"
-#include "Shader.h"
 
 #include "PhysicalDevice.h"
 #include "Device.h"
@@ -52,9 +50,9 @@ namespace Djn::Gfx
         vk::PipelineLayout primaryPipelineLayout;
         vk::Pipeline primaryPipeline;
 
-        std::vector<unsigned int> CompileShader(
-            shaderc::Compiler& compiler,
-            Shader shader);
+        //std::vector<unsigned int> CompileShader(
+        //    shaderc::Compiler& compiler,
+        //    Shader shader);
         // Creates render pass, frame buffers, and descriptor sets.
         void SetupPrimaryRenderPass();
         void TeardownPrimaryRenderPass();

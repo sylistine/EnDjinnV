@@ -68,9 +68,8 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     // Shader Module Setup phase
     // TODO: This should not be handled in graphics initialization.
     // It should be done before this binary gets built.
-    shaderc::Compiler compiler;
-    auto vertexShader = CompileShader(compiler, BasicVertexShader);
-    auto fragmentShader = CompileShader(compiler, BasicFragmentShader);
+    auto vertexShader = VkUtil::LoadShader();
+    auto fragmentShader = VkUtil::LoadShader();
 
     vk::ShaderModuleCreateInfo vsModuleCI;
     vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
@@ -120,54 +119,54 @@ Manager::~Manager()
 }
 
 
-std::vector<unsigned int> Manager::CompileShader(
-    shaderc::Compiler& compiler,
-    Shader shader)
-{
-    auto program = compiler.CompileGlslToSpv(
-        shader.shader, strlen(shader.shader),
-        shader.kind, shader.name);
-    if (program.GetCompilationStatus() != shaderc_compilation_status_success) {
-        switch (program.GetCompilationStatus()) {
-        case shaderc_compilation_status_invalid_stage:
-            std::cout << "Stage deduction failure." << std::endl;
-            break;
-        case shaderc_compilation_status_compilation_error:
-            std::cout << "Compilation error." << std::endl;
-            break;
-        case shaderc_compilation_status_internal_error:
-            std::cout << "Unexpected internal failure." << std::endl;
-            break;
-        case shaderc_compilation_status_null_result_object:
-            std::cout << "null result object." << std::endl;
-            break;
-        case shaderc_compilation_status_invalid_assembly:
-            std::cout << "Invalid assembly." << std::endl;
-            break;
-        case shaderc_compilation_status_validation_error:
-            std::cout << "Validation error." << std::endl;
-            break;
-        case shaderc_compilation_status_transformation_error:
-            std::cout << "Transformation error." << std::endl;
-            break;
-        case shaderc_compilation_status_success:
-        default:
-            std::cout << "Compilation success!" << std::endl;
-            break;
-        }
-        if (program.GetNumErrors() > 0) {
-            std::cout << "Detected errors during vertex program compilation." << std::endl;
-            std::cout << program.GetErrorMessage() << std::endl;
-        }
-        throw Exception("error compiling shaders");
-    }
-    std::vector<unsigned int> data;
-    for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++) {
-        data.push_back(*it);
-    }
-
-    return data;
-}
+//std::vector<unsigned int> Manager::CompileShader(
+//    shaderc::Compiler& compiler,
+//    Shader shader)
+//{
+//    auto program = compiler.CompileGlslToSpv(
+//        shader.shader, strlen(shader.shader),
+//        shader.kind, shader.name);
+//    if (program.GetCompilationStatus() != shaderc_compilation_status_success) {
+//        switch (program.GetCompilationStatus()) {
+//        case shaderc_compilation_status_invalid_stage:
+//            std::cout << "Stage deduction failure." << std::endl;
+//            break;
+//        case shaderc_compilation_status_compilation_error:
+//            std::cout << "Compilation error." << std::endl;
+//            break;
+//        case shaderc_compilation_status_internal_error:
+//            std::cout << "Unexpected internal failure." << std::endl;
+//            break;
+//        case shaderc_compilation_status_null_result_object:
+//            std::cout << "null result object." << std::endl;
+//            break;
+//        case shaderc_compilation_status_invalid_assembly:
+//            std::cout << "Invalid assembly." << std::endl;
+//            break;
+//        case shaderc_compilation_status_validation_error:
+//            std::cout << "Validation error." << std::endl;
+//            break;
+//        case shaderc_compilation_status_transformation_error:
+//            std::cout << "Transformation error." << std::endl;
+//            break;
+//        case shaderc_compilation_status_success:
+//        default:
+//            std::cout << "Compilation success!" << std::endl;
+//            break;
+//        }
+//        if (program.GetNumErrors() > 0) {
+//            std::cout << "Detected errors during vertex program compilation." << std::endl;
+//            std::cout << program.GetErrorMessage() << std::endl;
+//        }
+//        throw Exception("error compiling shaders");
+//    }
+//    std::vector<unsigned int> data;
+//    for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++) {
+//        data.push_back(*it);
+//    }
+//
+//    return data;
+//}
 
 
 void Manager::SetupPrimaryRenderPass()
