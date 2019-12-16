@@ -49,7 +49,7 @@ Platform::Platform(const char* appName)
 #ifdef _WIN32
     vkExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
-    
+
 
 #ifdef _DEBUG
     vkExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -62,7 +62,7 @@ Platform::Platform(const char* appName)
         }
     }
 #endif
-    
+
     vk::InstanceCreateInfo vkInstanceCI;
     vkInstanceCI.pApplicationInfo = &vkAppInfo;
     vkInstanceCI.enabledExtensionCount = (uint32_t)vkExtensions.size();
@@ -112,7 +112,7 @@ Platform::Platform(const char* appName)
     //    &debugReportCallbackCI,
     //    NULL,
     //    &callback);
-    // debugCallbackInited  = result == vk::Result::eSuccess;
+    //debugCallbackInited = result == vk::Result::eSuccess;
     //std::cout << "Callback created with result " << vk::to_string(result) << std::endl;
 #endif
 }
@@ -122,12 +122,16 @@ Platform::~Platform()
 {
 #ifdef _DEBUG
     if (debugCallbackInited) {
+        // C-Style
         auto ddrc = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
         if (ddrc != nullptr) {
             ddrc((VkInstance)vkInstance, callback, NULL);
         } else {
             std::cout << "Debug callback was initted but destroy function could not be located." << std::endl;
         }
+
+        // CPP-Style
+        //vkInstance.destroyDebugReportCallbackEXT(callback);
     }
 #endif
     vkDestroySurfaceKHR(vkInstance, surface, NULL);
