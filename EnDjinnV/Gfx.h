@@ -2,8 +2,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "VulkanUtil.h"
-
 #include "PhysicalDevice.h"
 #include "Device.h"
 #include "CommandPool.h"

@@ -45,9 +45,6 @@
     <ClCompile Include="CommandPool.cpp">
       <Filter>Source Files\Gfx</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files\Gfx</Filter>
-    </ClCompile>
     <ClCompile Include="Device.cpp">
       <Filter>Source Files\Gfx</Filter>
     </ClCompile>
@@ -146,5 +143,13 @@
     <ClInclude Include="RenderPass.h">
       <Filter>Header Files\Gfx</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\basic.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\basic.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

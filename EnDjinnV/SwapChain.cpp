@@ -1,8 +1,6 @@
 #include "EnDjinnV.h"
 #include "SwapChain.h"
 
-#include "VulkanUtil.h"
-
 using namespace Djn::Gfx;
 
 Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format format,

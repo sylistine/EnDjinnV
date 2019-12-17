@@ -14,7 +14,7 @@
 using namespace Djn;
 
 
-VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
     VkDebugReportFlagsEXT       flags,
     VkDebugReportObjectTypeEXT  objectType,
     uint64_t                    object,
@@ -25,6 +25,17 @@ VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
     void* pUserData)
 {
     std::cout << pMessage << std::endl;
+    return VK_FALSE;
+}
+
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData)
+{
+    std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
 }
 
@@ -52,15 +63,28 @@ Platform::Platform(const char* appName)
 
 
 #ifdef _DEBUG
+    auto extprops = vk::enumerateInstanceExtensionProperties();
+    std::cout << std::endl << "Extension properties: " << std::endl;
+    for (auto& prop : extprops) {
+        std::cout << prop.extensionName << std::endl;
+    }
     vkExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-    auto allLayers = "VK_LAYER_LUNARG_standard_validation";
+    vkExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+    std::vector<const char*> layers;
+    layers.push_back("VK_LAYER_LUNARG_standard_validation");
     std::vector<vk::LayerProperties> layerProps = vk::enumerateInstanceLayerProperties();
+    std::cout << std::endl << "Layer properties:" << std::endl;
     for (auto& prop : layerProps) {
-        if (strcmp(prop.layerName, allLayers) == 0) {
-            vkLayers.push_back(allLayers);
-            std::cout << "Enabling instance layer " << allLayers << std::endl;
+        std::cout << prop.layerName << std::endl;
+        for (auto& layer : layers) {
+            if (strcmp(prop.layerName, layer) == 0) {
+                vkLayers.push_back(layer);
+                std::cout << "Enabling instance layer " << layer << std::endl;
+            }
         }
     }
+    std::cout << std::endl;
 #endif
 
     vk::InstanceCreateInfo vkInstanceCI;
@@ -84,17 +108,33 @@ Platform::Platform(const char* appName)
 
 #ifdef _DEBUG
     // C-Style
-    VkDebugReportCallbackCreateInfoEXT debugReportCallbackCI;
-    debugReportCallbackCI.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+    VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCI = {};
+    debugUtilsMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    debugUtilsMessengerCI.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    debugUtilsMessengerCI.pfnUserCallback = DebugUtilsCallback;
+    auto cduc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugUtilsMessengerEXT");
+    if (cduc != nullptr) {
+        VkResult result = cduc((VkInstance)vkInstance, &debugUtilsMessengerCI, NULL, &messenger);
+        debugUtilsMessengerInited = result == VK_SUCCESS;
+        std::cout << "Messenger created with result " << VkUtil::to_string(result) << std::endl;
+    } else {
+        std::cout << "Unable to locate vkCreateDebugUtilsCallbackEXT function." << std::endl;
+    }
+
+    VkDebugReportCallbackCreateInfoEXT debugReportCallbackCI = {};
+    debugReportCallbackCI.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+    debugReportCallbackCI.flags =
         VK_DEBUG_REPORT_ERROR_BIT_EXT |
-        VK_DEBUG_REPORT_ERROR_BIT_EXT |
-        VK_DEBUG_REPORT_ERROR_BIT_EXT |
-        VK_DEBUG_REPORT_ERROR_BIT_EXT;
-    debugReportCallbackCI.pfnCallback = &MyDebugReportCallback;
+        VK_DEBUG_REPORT_WARNING_BIT_EXT |
+        VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
+        VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+        VK_DEBUG_REPORT_DEBUG_BIT_EXT;
+    debugReportCallbackCI.pfnCallback = &DebugReportCallback;
     auto cdrc = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
     if (cdrc != nullptr) {
         VkResult result = cdrc((VkInstance)vkInstance, &debugReportCallbackCI, NULL, &callback);
-        debugCallbackInited = result == VK_SUCCESS;
+        debugReportCallbackInited = result == VK_SUCCESS;
         std::cout << "Callback created with result " << VkUtil::to_string(result) << std::endl;
     } else {
         std::cout << "Unable to locate vkCreateDebugReportCallbackEXT function." << std::endl;
@@ -121,7 +161,7 @@ Platform::Platform(const char* appName)
 Platform::~Platform()
 {
 #ifdef _DEBUG
-    if (debugCallbackInited) {
+    if (debugReportCallbackInited) {
         // C-Style
         auto ddrc = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
         if (ddrc != nullptr) {

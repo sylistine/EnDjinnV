@@ -6,6 +6,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Shader.h"
+
 using namespace Djn::Gfx;
 
 
@@ -68,8 +70,8 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     // Shader Module Setup phase
     // TODO: This should not be handled in graphics initialization.
     // It should be done before this binary gets built.
-    auto vertexShader = VkUtil::LoadShader();
-    auto fragmentShader = VkUtil::LoadShader();
+    auto vertexShader = Shader::LoadBasicVertexShader();
+    auto fragmentShader = Shader::LoadBasicFragmentShader();
 
     vk::ShaderModuleCreateInfo vsModuleCI;
     vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
@@ -438,9 +440,10 @@ void Manager::TempPipelineStuff()
     ms.alphaToOneEnable = false;
     ms.minSampleShading = 0.0;
 
+    vk::Pipeline basePipeline;
     vk::GraphicsPipelineCreateInfo pipelineCI;
     pipelineCI.layout = primaryPipelineLayout;
-    pipelineCI.basePipelineHandle = vk::Pipeline();
+    pipelineCI.basePipelineHandle = basePipeline;
     pipelineCI.basePipelineIndex = 0;
     pipelineCI.pVertexInputState = &vi;
     pipelineCI.pInputAssemblyState = &ia;
@@ -456,7 +459,8 @@ void Manager::TempPipelineStuff()
     pipelineCI.renderPass = primaryRenderPass;
     pipelineCI.subpass = 0;
 
-    vk::Result result = d.createGraphicsPipelines({}, 1, &pipelineCI, NULL, &primaryPipeline);
+    vk::PipelineCache pipelineCache;
+    vk::Result result = d.createGraphicsPipelines(pipelineCache, 1, &pipelineCI, NULL, &primaryPipeline);
     if (result != vk::Result::eSuccess) throw Exception("Unable to create graphics pipeline.");
 
     // Command buffer etc

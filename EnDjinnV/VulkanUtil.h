@@ -5,15 +5,9 @@
 
 #include <vector>
 
+
 namespace Djn::VkUtil
 {
-    /// When the shader pipeline is setup propertly, they will not be compiled internally.
-    /// When that happens, the spirv assembly will be loaded here.
-    static std::vector<uint32_t> LoadShader()
-    {
-        return std::vector<uint32_t>();
-    }
-
     static std::string to_string(VkResult result)
     {
         switch (result) {
