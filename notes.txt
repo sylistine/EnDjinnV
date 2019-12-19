@@ -1,0 +1,13 @@
+shaders are compiled with glslangvalidator (as included with the vulkan lunarg sdk)
+
+the correct command is:
+glslangvalidator.exe -e <file-entrypont-func-name> -o <any-output-file-probably-with.spv> -V [my-shader.shad]
+
+glslangvalidator notes:
+-e identifies an entrypoint
+-o defines an output filename
+-V says "output is spir-v"
+[my-shader.shad] is the input file*
+
+* glslangvalidator will automatically assume a shader stage based on [*.shad] (i.e.: *.vert designates a vertex shader, *.frag designates a fragment, etc, etc)
+  if you do not use the .vert, .frag, .etc file naming convention, look for advanced glslangvalidator.exe usage.
