@@ -8,6 +8,35 @@
 
 namespace Djn::VkUtil
 {
+    static const char* VK_LAYER_FULL_VALIDATION = "VK_LAYER_KHRONOS_validation";
+
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
+        VkDebugReportFlagsEXT       flags,
+        VkDebugReportObjectTypeEXT  objectType,
+        uint64_t                    object,
+        size_t                      location,
+        int32_t                     messageCode,
+        const char* pLayerPrefix,
+        const char* pMessage,
+        void* pUserData)
+    {
+        std::cout << "======== Debug Report: " << std::endl;
+        std::cout << pMessage << std::endl;
+        return VK_FALSE;
+    }
+
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData)
+    {
+        std::cout << "======== Debug Utility Message: " << std::endl;
+        std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
+        return VK_FALSE;
+    }
     static std::string to_string(VkResult result)
     {
         switch (result) {

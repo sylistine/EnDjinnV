@@ -67,43 +67,37 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     // create depth texture
     depthTexture = new DepthTexture(device, 512, 512);
 
-    // Shader Module Setup phase
-    // TODO: This should not be handled in graphics initialization.
-    // It should be done before this binary gets built.
+    // Setup basic vertex shader.
     auto vertexShader = Shader::LoadBasicVertexShader();
-    auto fragmentShader = Shader::LoadBasicFragmentShader();
-
     vk::ShaderModuleCreateInfo vsModuleCI;
-    vsModuleCI.codeSize = vertexShader.size() * sizeof(unsigned int);
-    vsModuleCI.pCode = vertexShader.data();
+    vsModuleCI.codeSize = vertexShader.size() * sizeof(vertexShader[0]);
+    vsModuleCI.pCode = (uint32_t*)vertexShader.data();
     result = device.GetLogical().createShaderModule(&vsModuleCI, NULL, &vertexShaderModule);
     if (result != vk::Result::eSuccess) {
         throw Exception("Unable to create vertex shader module.");
     }
-
-    vk::ShaderModuleCreateInfo fsModuleCI;
-    fsModuleCI.codeSize = fragmentShader.size() * sizeof(unsigned int);
-    fsModuleCI.pCode = fragmentShader.data();
-
-    result = device.GetLogical().createShaderModule(&fsModuleCI, NULL, &fragmentShaderModule);
-    if (result != vk::Result::eSuccess) {
-        device.GetLogical().destroyShaderModule(vertexShaderModule);
-        throw Exception("Unable to create fragment shader module.");
-    }
-
     vk::PipelineShaderStageCreateInfo vsPipelineShaderStageCI;
     vsPipelineShaderStageCI.stage = vk::ShaderStageFlagBits::eVertex;
     vsPipelineShaderStageCI.module = vertexShaderModule;
     vsPipelineShaderStageCI.pName = "main";
     vsPipelineShaderStageCI.pSpecializationInfo = NULL;
+    pipelineShaderStages.push_back(vsPipelineShaderStageCI);
 
+    // Setup basic fragment shader.
+    auto fragmentShader = Shader::LoadBasicFragmentShader();
+    vk::ShaderModuleCreateInfo fsModuleCI;
+    fsModuleCI.codeSize = fragmentShader.size() * sizeof(fragmentShader[0]);
+    fsModuleCI.pCode = (uint32_t*)fragmentShader.data();
+    result = device.GetLogical().createShaderModule(&fsModuleCI, NULL, &fragmentShaderModule);
+    if (result != vk::Result::eSuccess) {
+        device.GetLogical().destroyShaderModule(vertexShaderModule);
+        throw Exception("Unable to create fragment shader module.");
+    }
     vk::PipelineShaderStageCreateInfo  fsPipelineShaderStageCI;
     fsPipelineShaderStageCI.stage = vk::ShaderStageFlagBits::eFragment;
     fsPipelineShaderStageCI.module = fragmentShaderModule;
     fsPipelineShaderStageCI.pName = "main";
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
-
-    pipelineShaderStages.push_back(vsPipelineShaderStageCI);
     pipelineShaderStages.push_back(fsPipelineShaderStageCI);
 
     SetupPrimaryRenderPass();

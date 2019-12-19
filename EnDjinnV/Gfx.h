@@ -25,9 +25,7 @@ namespace Djn::Gfx
         ~Manager();
 
         vk::Instance instance;
-        // Physical device data.
         PhysicalDevice primaryGPU;
-        // Logical device data.
         Device device;
         CommandPool gfxCommandPool;
         Swapchain swapchain;
@@ -48,9 +46,6 @@ namespace Djn::Gfx
         vk::PipelineLayout primaryPipelineLayout;
         vk::Pipeline primaryPipeline;
 
-        //std::vector<unsigned int> CompileShader(
-        //    shaderc::Compiler& compiler,
-        //    Shader shader);
         // Creates render pass, frame buffers, and descriptor sets.
         void SetupPrimaryRenderPass();
         void TeardownPrimaryRenderPass();

@@ -14,37 +14,6 @@
 using namespace Djn;
 
 
-const char* VK_LAYER_FULL_VALIDATION = "VK_LAYER_KHRONOS_validation";
-
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
-    VkDebugReportFlagsEXT       flags,
-    VkDebugReportObjectTypeEXT  objectType,
-    uint64_t                    object,
-    size_t                      location,
-    int32_t                     messageCode,
-    const char* pLayerPrefix,
-    const char* pMessage,
-    void* pUserData)
-{
-    std::cout << std::endl << "================ Debug Report ================" << std::endl;
-    std::cout << pMessage << std::endl << std::endl;;
-    return VK_FALSE;
-}
-
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData)
-{
-    std::cout << std::endl << "================ Debug Utility Message ================" << std::endl;
-    std::cout << "validation layer: " << pCallbackData->pMessage << std::endl << std::endl;
-    return VK_FALSE;
-}
-
-
 Platform::Platform(const char* appName)
 {
     XPlat::Initialize(appName);
@@ -66,26 +35,29 @@ Platform::Platform(const char* appName)
     enabledExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
 
-
 #ifdef _DEBUG
-    auto extprops = vk::enumerateInstanceExtensionProperties();
-    std::cout << std::endl << "Extension properties: " << std::endl;
     enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-    std::vector<const char*> desiredLayers;
-    desiredLayers.push_back(VK_LAYER_FULL_VALIDATION);
-    std::vector<vk::LayerProperties> layerProps = vk::enumerateInstanceLayerProperties();
-    for (auto& prop : layerProps) {
-        for (auto& layer : desiredLayers) {
-            if (strcmp(prop.layerName, layer) == 0) {
-                enabledLayers.push_back(layer);
-                std::cout << "Enabling instance layer " << layer << std::endl;
-            }
-        }
-    }
+    enabledLayers.push_back(VkUtil::VK_LAYER_FULL_VALIDATION);
 #endif
 
+    // Validate requested layers.
+    std::vector<vk::LayerProperties> instLayers = vk::enumerateInstanceLayerProperties();
+    for (auto& enabledLayer : enabledLayers) {
+        bool foundLayer = false;
+        for (auto& instLayer : instLayers) {
+            if (strcmp(instLayer.layerName, enabledLayer) == 0) {
+                foundLayer = true;
+                break;
+            }
+        }
+        if (!foundLayer) {
+            std::cout << "Unable to find required layer " << enabledLayer << std::endl;
+            throw Exception("Unable to find required vulkan layer.");
+        }
+    }
+
+    // Create VK Instance.
     vk::InstanceCreateInfo vkInstanceCI;
     vkInstanceCI.pApplicationInfo = &vkAppInfo;
     vkInstanceCI.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size());
@@ -111,7 +83,7 @@ Platform::Platform(const char* appName)
     debugUtilsMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     debugUtilsMessengerCI.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    debugUtilsMessengerCI.pfnUserCallback = DebugUtilsCallback;
+    debugUtilsMessengerCI.pfnUserCallback = VkUtil::DebugUtilsCallback;
     auto cduc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugUtilsMessengerEXT");
     if (cduc != nullptr) {
         VkResult result = cduc((VkInstance)vkInstance, &debugUtilsMessengerCI, NULL, &messenger);
@@ -129,7 +101,7 @@ Platform::Platform(const char* appName)
         VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
         VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
         VK_DEBUG_REPORT_DEBUG_BIT_EXT;
-    debugReportCallbackCI.pfnCallback = &DebugReportCallback;
+    debugReportCallbackCI.pfnCallback = &VkUtil::DebugReportCallback;
     auto cdrc = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
     if (cdrc != nullptr) {
         VkResult result = cdrc((VkInstance)vkInstance, &debugReportCallbackCI, NULL, &callback);
