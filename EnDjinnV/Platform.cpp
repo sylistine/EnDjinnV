@@ -14,6 +14,9 @@
 using namespace Djn;
 
 
+const char* VK_LAYER_FULL_VALIDATION = "VK_LAYER_KHRONOS_validation";
+
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
     VkDebugReportFlagsEXT       flags,
     VkDebugReportObjectTypeEXT  objectType,
@@ -24,7 +27,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
     const char* pMessage,
     void* pUserData)
 {
-    std::cout << pMessage << std::endl;
+    std::cout << std::endl << "================ Debug Report ================" << std::endl;
+    std::cout << pMessage << std::endl << std::endl;;
     return VK_FALSE;
 }
 
@@ -35,7 +39,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void* pUserData)
 {
-    std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
+    std::cout << std::endl << "================ Debug Utility Message ================" << std::endl;
+    std::cout << "validation layer: " << pCallbackData->pMessage << std::endl << std::endl;
     return VK_FALSE;
 }
 
@@ -53,46 +58,40 @@ Platform::Platform(const char* appName)
     vkAppInfo.pEngineName = appName;
     vkAppInfo.apiVersion = VK_API_VERSION_1_0;
 
-    std::vector<const char*> vkExtensions;
-    std::vector<const char*> vkLayers;
+    std::vector<const char*> enabledExtensions;
+    std::vector<const char*> enabledLayers;
 
-    vkExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    enabledExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 #ifdef _WIN32
-    vkExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    enabledExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
 
 
 #ifdef _DEBUG
     auto extprops = vk::enumerateInstanceExtensionProperties();
     std::cout << std::endl << "Extension properties: " << std::endl;
-    for (auto& prop : extprops) {
-        std::cout << prop.extensionName << std::endl;
-    }
-    vkExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-    vkExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-    std::vector<const char*> layers;
-    layers.push_back("VK_LAYER_LUNARG_standard_validation");
+    std::vector<const char*> desiredLayers;
+    desiredLayers.push_back(VK_LAYER_FULL_VALIDATION);
     std::vector<vk::LayerProperties> layerProps = vk::enumerateInstanceLayerProperties();
-    std::cout << std::endl << "Layer properties:" << std::endl;
     for (auto& prop : layerProps) {
-        std::cout << prop.layerName << std::endl;
-        for (auto& layer : layers) {
+        for (auto& layer : desiredLayers) {
             if (strcmp(prop.layerName, layer) == 0) {
-                vkLayers.push_back(layer);
+                enabledLayers.push_back(layer);
                 std::cout << "Enabling instance layer " << layer << std::endl;
             }
         }
     }
-    std::cout << std::endl;
 #endif
 
     vk::InstanceCreateInfo vkInstanceCI;
     vkInstanceCI.pApplicationInfo = &vkAppInfo;
-    vkInstanceCI.enabledExtensionCount = (uint32_t)vkExtensions.size();
-    vkInstanceCI.ppEnabledExtensionNames = vkExtensions.data();
-    vkInstanceCI.enabledLayerCount = (uint32_t)vkLayers.size();
-    vkInstanceCI.ppEnabledLayerNames = vkLayers.data();
+    vkInstanceCI.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size());
+    vkInstanceCI.ppEnabledExtensionNames = enabledExtensions.data();
+    vkInstanceCI.enabledLayerCount = static_cast<uint32_t>(enabledLayers.size());
+    vkInstanceCI.ppEnabledLayerNames = enabledLayers.data();
 
     vk::Result vkResult = vk::createInstance(&vkInstanceCI, NULL, &vkInstance);
     if (vkResult != vk::Result::eSuccess) throw Exception("Unable to create vulkan instance.");
