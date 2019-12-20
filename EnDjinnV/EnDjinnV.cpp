@@ -26,7 +26,7 @@ int main()
         std::cout << "Initializing graphics." << std::endl;
         Gfx::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
 
-        Djn::Camera mainCamera;
+        Djn::Camera mainCamera(vec3(0.f, -1.f, 0.f));
         Gfx::Manager::SetViewProjectionMatrices(mainCamera.ViewMatrix(), mainCamera.ProjectionMatrix());
         Gfx::Manager::SetVertices(GetDefaultVertices());
         Gfx::Manager::TempBuildAndRunPipeline();
@@ -49,8 +49,54 @@ int main()
 std::vector<Djn::Gfx::Vertex> GetDefaultVertices()
 {
     std::vector<Djn::Gfx::Vertex> vertexList;
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.f, 0.f, 0.f, 0.f), vec4(1.f, 0.f, 0.f, 0.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.5f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.f, 0.5f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(-1.f, 0.f, 0.f, 0.f), vec4(1.f, 0.f, 0.f, 0.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.0f, 1.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(1.f, 0.f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
     return vertexList;
 }
+
+
+//static const Djn::Gfx:Vertex g_vb_solid_face_colors_Data[] = {
+//    // red face
+//    {XYZ1(-1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
+//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
+//    {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
+//    {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
+//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
+//    {XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
+//    // green face
+//    {XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
+//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
+//    {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+//    {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
+//    {XYZ1(1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+//    // blue face
+//    {XYZ1(-1, 1, 1), XYZ1(0.f, 0.f, 1.f)},
+//    {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
+//    {XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
+//    {XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
+//    {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
+//    {XYZ1(-1, -1, -1), XYZ1(0.f, 0.f, 1.f)},
+//    // yellow face
+//    {XYZ1(1, 1, 1), XYZ1(1.f, 1.f, 0.f)},
+//    {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
+//    {XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
+//    {XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
+//    {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
+//    {XYZ1(1, -1, -1), XYZ1(1.f, 1.f, 0.f)},
+//    // magenta face
+//    {XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
+//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
+//    {XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
+//    {XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
+//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
+//    {XYZ1(-1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
+//    // cyan face
+//    {XYZ1(1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
+//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
+//    {XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
+//    {XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
+//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
+//    {XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
+//};

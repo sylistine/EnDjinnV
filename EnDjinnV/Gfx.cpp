@@ -340,9 +340,9 @@ void Manager::TempPipelineStuff()
     cBlendAttachmentState[0].alphaBlendOp = vk::BlendOp::eAdd;
     cBlendAttachmentState[0].colorBlendOp = vk::BlendOp::eAdd;
     cBlendAttachmentState[0].srcColorBlendFactor = vk::BlendFactor::eZero;
-    cBlendAttachmentState[0].dstColorBlendFactor = vk::BlendFactor::eZero;;
-    cBlendAttachmentState[0].srcAlphaBlendFactor = vk::BlendFactor::eZero;;
-    cBlendAttachmentState[0].dstAlphaBlendFactor = vk::BlendFactor::eZero;;
+    cBlendAttachmentState[0].dstColorBlendFactor = vk::BlendFactor::eZero;
+    cBlendAttachmentState[0].srcAlphaBlendFactor = vk::BlendFactor::eZero;
+    cBlendAttachmentState[0].dstAlphaBlendFactor = vk::BlendFactor::eZero;
 
     vk::PipelineColorBlendStateCreateInfo cb;
     cb.attachmentCount = 1;
@@ -412,10 +412,10 @@ void Manager::TempPipelineStuff()
 
     // Command buffer etc
     vk::ClearValue clearValues[2];
-    clearValues[0].color.float32[0] = 0.2f;
-    clearValues[0].color.float32[1] = 0.2f;
-    clearValues[0].color.float32[2] = 0.2f;
-    clearValues[0].color.float32[3] = 0.2f;
+    clearValues[0].color.float32[0] = 0.5f;
+    clearValues[0].color.float32[1] = 0.5f;
+    clearValues[0].color.float32[2] = 0.5f;
+    clearValues[0].color.float32[3] = 1.0f;
     clearValues[1].depthStencil.depth = 1.0f;
     clearValues[1].depthStencil.stencil = 0;
 

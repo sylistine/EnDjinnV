@@ -16,8 +16,8 @@ namespace Djn::Gfx
         ~Vertex();
     private:
         vec4 position;
+        vec4 color;
         vec4 normal;
         vec4 uv;
-        vec4 color;
     };
 }
