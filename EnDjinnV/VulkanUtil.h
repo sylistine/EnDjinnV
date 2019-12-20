@@ -21,7 +21,7 @@ namespace Djn::VkUtil
         const char* pMessage,
         void* pUserData)
     {
-        std::cout << "======== Debug Report: " << std::endl;
+        std::cout << "Debug Report: " << std::endl;
         std::cout << pMessage << std::endl;
         return VK_FALSE;
     }
@@ -33,8 +33,8 @@ namespace Djn::VkUtil
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData)
     {
-        std::cout << "======== Debug Utility Message: " << std::endl;
-        std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
+        std::cout << "Debug Utility Message: " << std::endl;
+        std::cout << pCallbackData->pMessage << std::endl;
         return VK_FALSE;
     }
     static std::string to_string(VkResult result)
