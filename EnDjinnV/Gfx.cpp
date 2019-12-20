@@ -115,56 +115,6 @@ Manager::~Manager()
 }
 
 
-//std::vector<unsigned int> Manager::CompileShader(
-//    shaderc::Compiler& compiler,
-//    Shader shader)
-//{
-//    auto program = compiler.CompileGlslToSpv(
-//        shader.shader, strlen(shader.shader),
-//        shader.kind, shader.name);
-//    if (program.GetCompilationStatus() != shaderc_compilation_status_success) {
-//        switch (program.GetCompilationStatus()) {
-//        case shaderc_compilation_status_invalid_stage:
-//            std::cout << "Stage deduction failure." << std::endl;
-//            break;
-//        case shaderc_compilation_status_compilation_error:
-//            std::cout << "Compilation error." << std::endl;
-//            break;
-//        case shaderc_compilation_status_internal_error:
-//            std::cout << "Unexpected internal failure." << std::endl;
-//            break;
-//        case shaderc_compilation_status_null_result_object:
-//            std::cout << "null result object." << std::endl;
-//            break;
-//        case shaderc_compilation_status_invalid_assembly:
-//            std::cout << "Invalid assembly." << std::endl;
-//            break;
-//        case shaderc_compilation_status_validation_error:
-//            std::cout << "Validation error." << std::endl;
-//            break;
-//        case shaderc_compilation_status_transformation_error:
-//            std::cout << "Transformation error." << std::endl;
-//            break;
-//        case shaderc_compilation_status_success:
-//        default:
-//            std::cout << "Compilation success!" << std::endl;
-//            break;
-//        }
-//        if (program.GetNumErrors() > 0) {
-//            std::cout << "Detected errors during vertex program compilation." << std::endl;
-//            std::cout << program.GetErrorMessage() << std::endl;
-//        }
-//        throw Exception("error compiling shaders");
-//    }
-//    std::vector<unsigned int> data;
-//    for (auto it = program.cbegin(); it != nullptr && it != program.cend(); it++) {
-//        data.push_back(*it);
-//    }
-//
-//    return data;
-//}
-
-
 void Manager::SetupPrimaryRenderPass()
 {
     auto d = device.GetLogical();
@@ -227,12 +177,14 @@ void Manager::SetupPrimaryRenderPass()
     vk::ImageView attachments[2];
     attachments[1] = depthTexture->GetView();
 
+    auto extents = primaryGPU.GetSurfaceCapabilities().currentExtent;
+
     vk::FramebufferCreateInfo framebufferCI;
     framebufferCI.renderPass = primaryRenderPass;
     framebufferCI.attachmentCount = 2;
     framebufferCI.pAttachments = attachments;
-    framebufferCI.width = 512;
-    framebufferCI.height = 512;
+    framebufferCI.width = extents.width;
+    framebufferCI.height = extents.height;
     framebufferCI.layers = 1;
 
     primaryFramebuffer = (vk::Framebuffer*)malloc(swapchain.GetImageCount() * sizeof(vk::Framebuffer));
@@ -458,11 +410,13 @@ void Manager::TempPipelineStuff()
     if (result != vk::Result::eSuccess) throw Exception("Unable to create graphics pipeline.");
 
     // Command buffer etc
-    vk::ClearColorValue clearValueColor;
-    vk::ClearValue clearValue;
-    clearValue.color = clearValueColor;
-    clearValue.depthStencil.depth = 1.0f;
-    clearValue.depthStencil.stencil = 0;
+    vk::ClearValue clearValues[2];
+    clearValues[0].color.float32[0] = 0.2f;
+    clearValues[0].color.float32[1] = 0.2f;
+    clearValues[0].color.float32[2] = 0.2f;
+    clearValues[0].color.float32[3] = 0.2f;
+    clearValues[1].depthStencil.depth = 1.0f;
+    clearValues[1].depthStencil.stencil = 0;
 
     vk::SemaphoreCreateInfo semaphoreCI;
     vk::Semaphore imageAcqSem = d.createSemaphore(semaphoreCI);
@@ -471,15 +425,16 @@ void Manager::TempPipelineStuff()
     result = d.acquireNextImageKHR(swapchain.GetSwapchainKHR(), UINT64_MAX, imageAcqSem, vk::Fence(), &imgIdx);
     if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
 
+    auto extent = primaryGPU.GetSurfaceCapabilities().currentExtent;
+
     vk::RenderPassBeginInfo rpBeginInfo;
     rpBeginInfo.renderPass = primaryRenderPass;
     rpBeginInfo.framebuffer = primaryFramebuffer[imgIdx];
     rpBeginInfo.renderArea.offset.x = 0;
     rpBeginInfo.renderArea.offset.y = 0;
-    rpBeginInfo.renderArea.extent.width = 512;
-    rpBeginInfo.renderArea.extent.height = 512;
-    rpBeginInfo.clearValueCount = 1;
-    rpBeginInfo.pClearValues = &clearValue;
+    rpBeginInfo.renderArea.extent = extent;
+    rpBeginInfo.clearValueCount = 2;
+    rpBeginInfo.pClearValues = clearValues;
 
     auto cmdBuffer = gfxCommandPool[0];
     vk::CommandBufferBeginInfo commandBufferBeginInfo;
@@ -488,21 +443,20 @@ void Manager::TempPipelineStuff()
     cmdBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, primaryPipeline);
     cmdBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, primaryPipelineLayout,
         0, 1, &primaryDescriptorSet, 0, NULL);
-    std::cout << &vertexBuffer.Get() << std::endl;
+
     vk::DeviceSize offsets[1];
     offsets[0] = 0;
     cmdBuffer.bindVertexBuffers(0, 1, &vertexBuffer.Get(), offsets);
     vk::Viewport viewport;
-    viewport.width = 512;
-    viewport.height = 512;
+    viewport.width = extent.width;
+    viewport.height = extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     viewport.x = 0;
     viewport.y = 0;
     cmdBuffer.setViewport(0, 1, &viewport);
     vk::Rect2D scissor;
-    scissor.extent.width = 512;
-    scissor.extent.height = 512;
+    scissor.extent = extent;
     scissor.offset.x = 0;
     scissor.offset.y = 0;
     cmdBuffer.setScissor(0, 1, &scissor);
@@ -533,7 +487,7 @@ void Manager::TempPipelineStuff()
     do {
         result = d.waitForFences(1, &drawFence, true, 1000000000);
     } while (result == vk::Result::eTimeout);
-    std::cout << "Waited for fences. Final result: " << vk::to_string(result) << std::endl;
+    if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
 
     result = device.GetPresentQueue().presentKHR(&presentInfoKHR);
     if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
