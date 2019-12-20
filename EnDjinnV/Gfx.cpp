@@ -230,6 +230,7 @@ void Manager::SetupPrimaryRenderPass()
 
     // Allocate the actual set.
     vk::DescriptorPoolSize descPoolSize;
+    descPoolSize.type = vk::DescriptorType::eUniformBuffer;
     descPoolSize.descriptorCount = 1;
 
     vk::DescriptorPoolCreateInfo descPoolCI;
