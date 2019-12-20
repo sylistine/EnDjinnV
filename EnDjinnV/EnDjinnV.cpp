@@ -9,7 +9,10 @@
 #include "Camera.h"
 #include "Vertex.h"
 
+#include "MathUtil.h"
+
 std::vector<Djn::Gfx::Vertex> GetDefaultVertices();
+std::vector<Djn::Gfx::Vertex> CubeMesh();
 
 int main()
 {
@@ -26,9 +29,13 @@ int main()
         std::cout << "Initializing graphics." << std::endl;
         Gfx::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
 
-        Djn::Camera mainCamera(vec3(0.f, -1.f, 0.f));
+        Djn::Camera mainCamera(vec3(0.f, 0.f, -5.f));
+        auto triMeshVerts = CubeMesh();
+        auto vPos = mainCamera.ViewMatrix() * triMeshVerts[0].Position();
+        std::cout << Djn::Math::to_string(vPos) << std::endl;
+
         Gfx::Manager::SetViewProjectionMatrices(mainCamera.ViewMatrix(), mainCamera.ProjectionMatrix());
-        Gfx::Manager::SetVertices(GetDefaultVertices());
+        Gfx::Manager::SetVertices(CubeMesh());
         Gfx::Manager::TempBuildAndRunPipeline();
 
         std::cout << "Looping forever." << std::endl;
@@ -49,54 +56,61 @@ int main()
 std::vector<Djn::Gfx::Vertex> GetDefaultVertices()
 {
     std::vector<Djn::Gfx::Vertex> vertexList;
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(-1.f, 0.f, 0.f, 0.f), vec4(1.f, 0.f, 0.f, 0.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.0f, 1.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(1.f, 0.f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(-1.f, 0.f, 0.f, 1.f), vec4(1.f, 0.f, 0.f, 1.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.0f, 1.f, 0.f, 1.f), vec4(0.f, 1.f, 0.f, 1.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(1.f, 0.f, 0.f, 1.f), vec4(0.f, 0.f, 1.f, 1.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(1.f, 0.f, 0.f, 1.f), vec4(0.f, 0.f, 1.f, 1.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.0f, 1.f, 0.f, 1.f), vec4(0.f, 1.f, 0.f, 1.f)));
+    vertexList.push_back(Djn::Gfx::Vertex(vec4(-1.f, 0.f, 0.f, 1.f), vec4(1.f, 0.f, 0.f, 1.f)));
     return vertexList;
 }
 
 
-//static const Djn::Gfx:Vertex g_vb_solid_face_colors_Data[] = {
-//    // red face
-//    {XYZ1(-1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
-//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
-//    {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
-//    {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
-//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
-//    {XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
-//    // green face
-//    {XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
-//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
-//    {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
-//    {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
-//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
-//    {XYZ1(1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
-//    // blue face
-//    {XYZ1(-1, 1, 1), XYZ1(0.f, 0.f, 1.f)},
-//    {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
-//    {XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
-//    {XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
-//    {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
-//    {XYZ1(-1, -1, -1), XYZ1(0.f, 0.f, 1.f)},
-//    // yellow face
-//    {XYZ1(1, 1, 1), XYZ1(1.f, 1.f, 0.f)},
-//    {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
-//    {XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
-//    {XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
-//    {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
-//    {XYZ1(1, -1, -1), XYZ1(1.f, 1.f, 0.f)},
-//    // magenta face
-//    {XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
-//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
-//    {XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
-//    {XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
-//    {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
-//    {XYZ1(-1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
-//    // cyan face
-//    {XYZ1(1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
-//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
-//    {XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
-//    {XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
-//    {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
-//    {XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
-//};
+static std::vector<Djn::Gfx::Vertex> CubeMesh()
+{
+    std::vector<Djn::Gfx::Vertex> verts{
+        // red face
+        {vec4(-1, -1, 1, 1), vec4(1.f, 0.f, 0.f, 1)},
+        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
+        {vec4(1, -1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
+        {vec4(1, -1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
+        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
+        {vec4(1, 1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
+        // green face
+        {vec4(-1, -1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
+        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
+        {vec4(-1, 1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
+        {vec4(-1, 1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
+        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
+        {vec4(1, 1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
+        // blue face
+        {vec4(-1, 1, 1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, -1, 1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, 1, -1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, 1, -1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, -1, 1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, -1, -1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
+        // yellow face
+        {vec4(1, 1, 1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
+        {vec4(1, 1, -1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
+        {vec4(1, -1, 1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
+        {vec4(1, -1, 1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
+        {vec4(1, 1, -1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
+        {vec4(1, -1, -1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
+        // magenta face
+        {vec4(1, 1, 1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
+        {vec4(1, 1, -1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
+        {vec4(1, 1, -1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
+        {vec4(-1, 1, -1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
+        // cyan face
+        {vec4(1, -1, 1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
+        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
+        {vec4(-1, -1, 1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
+        {vec4(-1, -1, 1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
+        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
+        {vec4(-1, -1, -1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
+    };
+    return verts;
+}

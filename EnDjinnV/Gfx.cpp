@@ -461,7 +461,7 @@ void Manager::TempPipelineStuff()
     scissor.offset.x = 0;
     scissor.offset.y = 0;
     cmdBuffer.setScissor(0, 1, &scissor);
-    cmdBuffer.draw(3, 1, 0, 0);
+    cmdBuffer.draw(6, 1, 0, 0);
     cmdBuffer.endRenderPass();
     cmdBuffer.end();
     vk::CommandBuffer commandBuffers[1];

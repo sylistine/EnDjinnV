@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include <vulkan/spirv.h>
 
 #include <vector>
@@ -9,6 +9,7 @@
 namespace Djn::VkUtil
 {
     static const char* VK_LAYER_FULL_VALIDATION = "VK_LAYER_KHRONOS_validation";
+    static const char* VK_LAYER_RENDERDOC_CAPTURE = "VK_LAYER_RENDERDOC_Capture";
 
 
     static std::string to_string(VkDebugUtilsMessageSeverityFlagBitsEXT bits)
@@ -59,6 +60,24 @@ namespace Djn::VkUtil
         case VK_ERROR_INVALID_DEVICE_ADDRESS_EXT: return "ErrorInvalidDeviceAddressEXT";
         case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT: return "ErrorFullScreenExclusiveModeLostEXT";
         default: return "Invalid";
+        }
+    }
+
+
+    static void PrintInstanceExtensions()
+    {
+        auto exts = vk::enumerateInstanceExtensionProperties();
+        for (auto ext : exts) {
+            std::cout << ext.extensionName << std::endl;
+        }
+    }
+
+
+    static void PrintInstanceLayers()
+    {
+        auto layers = vk::enumerateInstanceLayerProperties();
+        for (auto layer : layers) {
+            std::cout << layer.layerName << std::endl;
         }
     }
 

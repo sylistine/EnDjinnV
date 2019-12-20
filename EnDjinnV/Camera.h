@@ -17,5 +17,9 @@ namespace Djn
         mat4 ClipMatrix() const;
     private:
         Transform transform;
+        float fovy;
+        float aspect;
+        float nearClip;
+        float farClip;
     };
 }

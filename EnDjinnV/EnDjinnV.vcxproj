@@ -189,6 +189,7 @@
     <ClInclude Include="EnDjinnV.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="Gfx.h" />
+    <ClInclude Include="MathUtil.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="PhysicalDevice.h" />
     <ClInclude Include="Platform.h" />

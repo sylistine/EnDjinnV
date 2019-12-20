@@ -5,7 +5,7 @@
 using namespace Djn;
 
 
-Transform::Transform() : position(vec3(0, 0, 0)), rotation(), scale(vec3(1, 1, 1))
+Transform::Transform() : position(), rotation(), scale(vec3(1, 1, 1))
 {
 
 }

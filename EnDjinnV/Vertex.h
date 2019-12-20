@@ -14,6 +14,7 @@ namespace Djn::Gfx
         Vertex();
         Vertex(vec4 position, vec4 color);
         ~Vertex();
+        vec4 Position() const { return position; }
     private:
         vec4 position;
         vec4 color;

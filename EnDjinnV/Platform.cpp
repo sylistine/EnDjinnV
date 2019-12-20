@@ -36,9 +36,15 @@ Platform::Platform(const char* appName)
 #endif
 
 #ifdef _DEBUG
+    //std::cout << "Available extensions: " << std::endl;
+    //VkUtil::PrintInstanceExtensions();
+    //std::cout << "Available layers: " << std::endl;
+    //VkUtil::PrintInstanceLayers();
+
     enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     enabledLayers.push_back(VkUtil::VK_LAYER_FULL_VALIDATION);
+    //enabledLayers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
 #endif
 
     // Validate requested layers.
