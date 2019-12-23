@@ -28,7 +28,6 @@ namespace Djn::Gfx
             this->d = other.d;
             this->buffer = other.buffer;
             this->memory = other.memory;
-            this->memoryInfo = other.memoryInfo;
             other.inited = false;
         }
         Buffer& operator=(Buffer&& other) noexcept
@@ -38,7 +37,6 @@ namespace Djn::Gfx
                 this->d = other.d;
                 this->buffer = other.buffer;
                 this->memory = other.memory;
-                this->memoryInfo = other.memoryInfo;
                 other.inited = false;
             }
             return *this;
@@ -49,7 +47,6 @@ namespace Djn::Gfx
         vk::Device d;
         vk::Buffer buffer;
         vk::DeviceMemory memory;
-        vk::MemoryAllocateInfo memoryInfo;
         void FreeMemory();
     };
 }

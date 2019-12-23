@@ -19,10 +19,10 @@ void Manager::Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface)
 }
 
 
-void Manager::SetViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix)
+void Manager::SetViewProjectionMatrices(mat4 mvp)
 {
     if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
-    gfxInstance->SetPrimaryViewProjectionMatrices(viewMatrix, projectionMatrix);
+    gfxInstance->SetPrimaryViewProjectionMatrices(mvp);
 }
 
 
@@ -65,7 +65,7 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
         primaryGPU.GetSurfaceCapabilities(), queueFamilyIndices);
 
     // create depth texture
-    depthTexture = new DepthTexture(device, 512, 512);
+    depthTexture = new DepthTexture(device, primaryGPU.GetSurfaceCapabilities().currentExtent);
 
     // Setup basic vertex shader.
     auto vertexShader = Shader::LoadBasicVertexShader();
@@ -209,6 +209,16 @@ void Manager::SetupPrimaryRenderPass()
     // These prewarm various buffers that our shaders will reference later.
     // Presently, the only buffer we use is the view/projection buffer.
     // In the future, this will include textures sampled by the fragment shader, time keeping, etc.
+    vk::DescriptorPoolSize descPoolSize;
+    descPoolSize.type = vk::DescriptorType::eUniformBuffer;
+    descPoolSize.descriptorCount = 1;
+
+    vk::DescriptorPoolCreateInfo descPoolCI;
+    descPoolCI.maxSets = 1;
+    descPoolCI.poolSizeCount = 1;
+    descPoolCI.pPoolSizes = &descPoolSize;
+    result = d.createDescriptorPool(&descPoolCI, NULL, &primaryDescriptorPool);
+
     vk::DescriptorSetLayoutBinding descSetBindings;
     descSetBindings.binding = 0;
     descSetBindings.descriptorType = vk::DescriptorType::eUniformBuffer;
@@ -227,18 +237,6 @@ void Manager::SetupPrimaryRenderPass()
     pipelineLayoutCI.setLayoutCount = 1;
     pipelineLayoutCI.pSetLayouts = &primaryDescriptorSetLayout;
     result = d.createPipelineLayout(&pipelineLayoutCI, NULL, &primaryPipelineLayout);
-
-    // Allocate the actual set.
-    vk::DescriptorPoolSize descPoolSize;
-    descPoolSize.type = vk::DescriptorType::eUniformBuffer;
-    descPoolSize.descriptorCount = 1;
-
-    vk::DescriptorPoolCreateInfo descPoolCI;
-    descPoolCI.maxSets = 1;
-    descPoolCI.poolSizeCount = 1;
-    descPoolCI.pPoolSizes = &descPoolSize;
-
-    result = d.createDescriptorPool(&descPoolCI, NULL, &primaryDescriptorPool);
 
     vk::DescriptorSetAllocateInfo descSetAllocInfo;
     descSetAllocInfo.descriptorPool = primaryDescriptorPool;
@@ -264,6 +262,7 @@ void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
     vertexBuffer = Buffer(
         device, vk::BufferUsageFlagBits::eVertexBuffer,
         vertices.data(), vertices.size() * sizeof(vertices[0]));
+    vertexCount = vertices.size();
 
     viBindingDesc.binding = 0;
     viBindingDesc.inputRate = vk::VertexInputRate::eVertex;
@@ -271,19 +270,18 @@ void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
 }
 
 
-void Manager::SetPrimaryViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix)
+void Manager::SetPrimaryViewProjectionMatrices(mat4 mvp)
 {
-    auto viewAndProjectionMatrices = { viewMatrix, projectionMatrix };
     // TODO: this buffer should probably only be created once, with contents updated each frame.
     viewProjectionBuffer = Buffer(
         device, vk::BufferUsageFlagBits::eUniformBuffer,
-        &viewAndProjectionMatrices, sizeof(mat4) * 2);
+        &mvp, sizeof(mvp));
 
     // Write to the set.
     vk::DescriptorBufferInfo descBufferInfo;
     descBufferInfo.buffer = viewProjectionBuffer.Get();
     descBufferInfo.offset = 0;
-    descBufferInfo.range = sizeof(mat4) * 2;
+    descBufferInfo.range = sizeof(mat4);
 
     vk::WriteDescriptorSet writeInfo;
     writeInfo.dstSet = primaryDescriptorSet;
@@ -303,12 +301,12 @@ void Manager::TempPipelineStuff()
     auto d = device.GetLogical();
 
     // Create pipeline.
-    vk::DynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];
-    vk::PipelineDynamicStateCreateInfo dynamicState;
-    memset(dynamicStateEnables, 0, sizeof dynamicStateEnables);
+    vk::DynamicState dynamicStates[VK_DYNAMIC_STATE_RANGE_SIZE];
+    vk::PipelineDynamicStateCreateInfo dynamicStateCI;
+    memset(dynamicStates, 0, sizeof dynamicStates);
 
-    dynamicState.pDynamicStates = dynamicStateEnables;
-    dynamicState.dynamicStateCount = 0;
+    dynamicStateCI.pDynamicStates = dynamicStates;
+    dynamicStateCI.dynamicStateCount = 0;
 
     // Pipeline state CIs
     auto vertexAtributes = Vertex::AttributeDescs();
@@ -320,11 +318,13 @@ void Manager::TempPipelineStuff()
 
     vk::PipelineInputAssemblyStateCreateInfo ia;
     ia.primitiveRestartEnable = false;
-    ia.topology = vk::PrimitiveTopology::eTriangleList;
+    ia.topology = vk::PrimitiveTopology::eTriangleStrip;
+
+    vk::PipelineTessellationStateCreateInfo ts;
 
     vk::PipelineRasterizationStateCreateInfo rs;
     rs.polygonMode = vk::PolygonMode::eFill;
-    rs.cullMode = vk::CullModeFlagBits::eBack;
+    rs.cullMode = vk::CullModeFlagBits::eNone;
     rs.frontFace = vk::FrontFace::eClockwise;
     rs.depthClampEnable = false;
     rs.rasterizerDiscardEnable = false;
@@ -334,8 +334,13 @@ void Manager::TempPipelineStuff()
     rs.depthBiasSlopeFactor = 0;
     rs.lineWidth = 1.0f;
 
-    vk::PipelineColorBlendAttachmentState cBlendAttachmentState[1];
-    cBlendAttachmentState[0].colorWriteMask = vk::ColorComponentFlags(0xf);
+    const int NUM_COLOR_BLEND_ATTACHMENT_STATES = 1;
+    vk::PipelineColorBlendAttachmentState cBlendAttachmentState[NUM_COLOR_BLEND_ATTACHMENT_STATES];
+    cBlendAttachmentState[0].colorWriteMask =
+        vk::ColorComponentFlagBits::eA |
+        vk::ColorComponentFlagBits::eR |
+        vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB;
     cBlendAttachmentState[0].blendEnable = false;
     cBlendAttachmentState[0].alphaBlendOp = vk::BlendOp::eAdd;
     cBlendAttachmentState[0].colorBlendOp = vk::BlendOp::eAdd;
@@ -345,7 +350,7 @@ void Manager::TempPipelineStuff()
     cBlendAttachmentState[0].dstAlphaBlendFactor = vk::BlendFactor::eZero;
 
     vk::PipelineColorBlendStateCreateInfo cb;
-    cb.attachmentCount = 1;
+    cb.attachmentCount = NUM_COLOR_BLEND_ATTACHMENT_STATES;
     cb.pAttachments = cBlendAttachmentState;
     cb.logicOpEnable = false;
     cb.logicOp = vk::LogicOp::eNoOp;
@@ -356,9 +361,9 @@ void Manager::TempPipelineStuff()
 
     vk::PipelineViewportStateCreateInfo vp = {};
     vp.viewportCount = 1;
-    dynamicStateEnables[dynamicState.dynamicStateCount++] = vk::DynamicState::eViewport;
+    dynamicStates[dynamicStateCI.dynamicStateCount++] = vk::DynamicState::eViewport;
     vp.scissorCount = 1;
-    dynamicStateEnables[dynamicState.dynamicStateCount++] = vk::DynamicState::eScissor;
+    dynamicStates[dynamicStateCI.dynamicStateCount++] = vk::DynamicState::eScissor;
     vp.pScissors = NULL;
     vp.pViewports = NULL;
 
@@ -379,8 +384,9 @@ void Manager::TempPipelineStuff()
     ds.back.writeMask = 0;
     ds.front = ds.back;
 
+    vk::SampleMask sampleMask;
     vk::PipelineMultisampleStateCreateInfo ms;
-    ms.pSampleMask = NULL;
+    ms.pSampleMask = &sampleMask;
     ms.rasterizationSamples = vk::SampleCountFlagBits::e1;
     ms.sampleShadingEnable = false;
     ms.alphaToCoverageEnable = false;
@@ -389,33 +395,43 @@ void Manager::TempPipelineStuff()
 
     vk::Pipeline basePipeline;
     vk::GraphicsPipelineCreateInfo pipelineCI;
+    pipelineCI.stageCount = (uint32_t)pipelineShaderStages.size();
+    pipelineCI.pStages = pipelineShaderStages.data();
+    pipelineCI.pVertexInputState = &vi;
+    pipelineCI.pInputAssemblyState = &ia;
+    pipelineCI.pTessellationState = &ts;
+    pipelineCI.pViewportState = &vp;
+    pipelineCI.pRasterizationState = &rs;
+    pipelineCI.pMultisampleState = &ms;
+    pipelineCI.pDepthStencilState = &ds;
+    pipelineCI.pColorBlendState = &cb;
+    pipelineCI.pDynamicState = &dynamicStateCI;
+    pipelineCI.renderPass = primaryRenderPass;
+    pipelineCI.subpass = 0;
     pipelineCI.layout = primaryPipelineLayout;
     pipelineCI.basePipelineHandle = basePipeline;
     pipelineCI.basePipelineIndex = 0;
-    pipelineCI.pVertexInputState = &vi;
-    pipelineCI.pInputAssemblyState = &ia;
-    pipelineCI.pRasterizationState = &rs;
-    pipelineCI.pColorBlendState = &cb;
-    pipelineCI.pTessellationState = NULL;
-    pipelineCI.pMultisampleState = &ms;
-    pipelineCI.pDynamicState = &dynamicState;
-    pipelineCI.pViewportState = &vp;
-    pipelineCI.pDepthStencilState = &ds;
-    pipelineCI.stageCount = (uint32_t)pipelineShaderStages.size();
-    pipelineCI.pStages = pipelineShaderStages.data();
-    pipelineCI.renderPass = primaryRenderPass;
-    pipelineCI.subpass = 0;
 
     vk::PipelineCache pipelineCache;
+    vk::PipelineCacheCreateInfo pipelineCacheCI;
+    if (d.createPipelineCache(&pipelineCacheCI, NULL, &pipelineCache) != vk::Result::eSuccess)
+        throw Exception("Failed to create pipeline cache.");
     vk::Result result = d.createGraphicsPipelines(pipelineCache, 1, &pipelineCI, NULL, &primaryPipeline);
     if (result != vk::Result::eSuccess) throw Exception("Unable to create graphics pipeline.");
 
+    TempCommandBuffer();
+}
+
+
+void Manager::TempCommandBuffer()
+{
+    auto d = device.GetLogical();
     // Command buffer etc
     vk::ClearValue clearValues[2];
-    clearValues[0].color.float32[0] = 0.5f;
-    clearValues[0].color.float32[1] = 0.5f;
-    clearValues[0].color.float32[2] = 0.5f;
-    clearValues[0].color.float32[3] = 1.0f;
+    clearValues[0].color.float32[0] = 0.1f;
+    clearValues[0].color.float32[1] = 0.1f;
+    clearValues[0].color.float32[2] = 0.1f;
+    clearValues[0].color.float32[3] = 0.1f;
     clearValues[1].depthStencil.depth = 1.0f;
     clearValues[1].depthStencil.stencil = 0;
 
@@ -423,7 +439,7 @@ void Manager::TempPipelineStuff()
     vk::Semaphore imageAcqSem = d.createSemaphore(semaphoreCI);
 
     uint32_t imgIdx;
-    result = d.acquireNextImageKHR(swapchain.GetSwapchainKHR(), UINT64_MAX, imageAcqSem, vk::Fence(), &imgIdx);
+    vk::Result result = d.acquireNextImageKHR(swapchain.GetSwapchainKHR(), UINT64_MAX, imageAcqSem, vk::Fence(), &imgIdx);
     if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
 
     auto extent = primaryGPU.GetSurfaceCapabilities().currentExtent;
@@ -445,23 +461,23 @@ void Manager::TempPipelineStuff()
     cmdBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, primaryPipelineLayout,
         0, 1, &primaryDescriptorSet, 0, NULL);
 
-    vk::DeviceSize offsets[1];
-    offsets[0] = 0;
+    vk::DeviceSize offsets[1] = { 0 };
     cmdBuffer.bindVertexBuffers(0, 1, &vertexBuffer.Get(), offsets);
     vk::Viewport viewport;
-    viewport.width = extent.width;
-    viewport.height = extent.height;
+    viewport.width = (float)extent.width;
+    viewport.height = (float)extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     viewport.x = 0;
     viewport.y = 0;
     cmdBuffer.setViewport(0, 1, &viewport);
     vk::Rect2D scissor;
-    scissor.extent = extent;
+    scissor.extent.width = extent.width;
+    scissor.extent.height = extent.height;
     scissor.offset.x = 0;
     scissor.offset.y = 0;
     cmdBuffer.setScissor(0, 1, &scissor);
-    cmdBuffer.draw(6, 1, 0, 0);
+    cmdBuffer.draw(vertexCount, 1, 0, 0);
     cmdBuffer.endRenderPass();
     cmdBuffer.end();
     vk::CommandBuffer commandBuffers[1];
@@ -492,9 +508,4 @@ void Manager::TempPipelineStuff()
 
     result = device.GetPresentQueue().presentKHR(&presentInfoKHR);
     if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
-
-    // TODO:: Teardown pass that cleans up all the junk we created here.
 }
-
-
-

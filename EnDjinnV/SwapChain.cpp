@@ -15,8 +15,7 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format forma
     if (surfaceCapabilities.currentExtent.width == 0xFFFFFFFF) {
         // If the surface size is undefined, the size is set to
         // the size of the images requested.
-        swapchainExtent.width = 512;
-        swapchainExtent.height = 512;
+        swapchainExtent = surfaceCapabilities.currentExtent;
         if (swapchainExtent.width < surfaceCapabilities.minImageExtent.width) {
             swapchainExtent.width = surfaceCapabilities.minImageExtent.width;
         } else if (swapchainExtent.width > surfaceCapabilities.maxImageExtent.width) {

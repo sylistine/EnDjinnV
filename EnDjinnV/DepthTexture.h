@@ -9,7 +9,9 @@ namespace Djn::Gfx
     class DepthTexture
     {
     public:
-        DepthTexture(const Device& device, uint32_t initialWidth, uint32_t initialHeight);
+        DepthTexture(const Device& device, vk::Extent2D extents) :
+            DepthTexture(device, extents.width, extents.height) {}
+        DepthTexture(const Device& device, uint32_t width, uint32_t height);
         ~DepthTexture();
         vk::ImageView GetView() const { return view; }
     private:

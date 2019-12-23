@@ -21,24 +21,25 @@ Buffer::Buffer(
     bufferCI.queueFamilyIndexCount = 0;
     bufferCI.pQueueFamilyIndices = NULL;
     bufferCI.sharingMode = vk::SharingMode::eExclusive;
-
     vk::Result result = d.createBuffer(&bufferCI, NULL, &buffer);
     if (result != vk::Result::eSuccess) throw Exception("Unable to create vertex buffer.");
 
     // Create memory.
-    vk::MemoryRequirements memoryReqs = {};
+    vk::MemoryRequirements memoryReqs;
     d.getBufferMemoryRequirements(buffer, &memoryReqs);
 
-    memoryInfo.allocationSize = memoryReqs.size;
+    vk::MemoryAllocateInfo memoryAI;
+    memoryAI.allocationSize = memoryReqs.size;
+    memoryAI.memoryTypeIndex = UINT32_MAX;
     if (!device.GetMemoryTypeIndex(
         memoryReqs.memoryTypeBits,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-        memoryInfo.memoryTypeIndex))
+        memoryAI.memoryTypeIndex))
     {
         d.destroyBuffer(buffer, NULL);
         throw Exception("Unable to locate correct memory type index for vertex buffer.");
     }
-    result = d.allocateMemory(&memoryInfo, NULL, &memory);
+    result = d.allocateMemory(&memoryAI, NULL, &memory);
     if (result != vk::Result::eSuccess) {
         d.destroyBuffer(buffer, NULL);
     }
@@ -46,7 +47,7 @@ Buffer::Buffer(
     // Map, Copy, and Unmap
     auto vertexDataDst = d.mapMemory(
         memory,
-        vk::DeviceSize(0), memoryInfo.allocationSize,
+        vk::DeviceSize(0), memoryAI.allocationSize,
         vk::MemoryMapFlags(0));
     memcpy(vertexDataDst, data, size);
     d.unmapMemory(memory);

@@ -7,14 +7,14 @@
 using namespace Djn::Gfx;
 
 
-DepthTexture::DepthTexture(const Device& device, uint32_t initialWidth, uint32_t initialHeight) :
+DepthTexture::DepthTexture(const Device& device, uint32_t width, uint32_t height) :
     vkDevice(device.GetLogical())
 {
     vk::ImageCreateInfo imageCI;
     imageCI.imageType = vk::ImageType::e2D;
     imageCI.format = vk::Format::eD16Unorm;
-    imageCI.extent.width = initialWidth;
-    imageCI.extent.height = initialHeight;
+    imageCI.extent.width = width;
+    imageCI.extent.height = height;
     imageCI.extent.depth = 1;
     imageCI.mipLevels = 1;
     imageCI.arrayLayers = 1;

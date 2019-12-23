@@ -30,11 +30,8 @@ int main()
         Gfx::Manager::Initialize(platform.GetVkInstance(), platform.GetSurface());
 
         Djn::Camera mainCamera(vec3(0.f, 0.f, -5.f));
-        auto triMeshVerts = CubeMesh();
-        auto vPos = mainCamera.ViewMatrix() * triMeshVerts[0].Position();
-        std::cout << Djn::Math::to_string(vPos) << std::endl;
-
-        Gfx::Manager::SetViewProjectionMatrices(mainCamera.ViewMatrix(), mainCamera.ProjectionMatrix());
+        auto mvp = mainCamera.ClipMatrix() * mainCamera.ViewMatrix() * mainCamera.ProjectionMatrix();
+        Gfx::Manager::SetViewProjectionMatrices(mvp);
         Gfx::Manager::SetVertices(CubeMesh());
         Gfx::Manager::TempBuildAndRunPipeline();
 

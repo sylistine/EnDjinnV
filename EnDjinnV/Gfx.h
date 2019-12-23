@@ -16,7 +16,7 @@ namespace Djn::Gfx
     {
     public:
         static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
-        static void SetViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix);
+        static void SetViewProjectionMatrices(mat4 mvp);
         static void SetVertices(std::vector<Vertex> vertices);
         static void TempBuildAndRunPipeline();
     private:
@@ -37,6 +37,7 @@ namespace Djn::Gfx
         // Primary render pass steps.
         vk::RenderPass primaryRenderPass; // draws to the main output surface.
         vk::Framebuffer* primaryFramebuffer; // framebuffers for primary swapchain.
+        uint32_t vertexCount;
         Buffer vertexBuffer; // buffer for just the one set of verts.
         vk::VertexInputBindingDescription viBindingDesc;
         Buffer viewProjectionBuffer; // buffer for the main camera view/projection matrices.
@@ -52,9 +53,10 @@ namespace Djn::Gfx
         // Updates the VBO.
         void SetPrimaryVertexBuffer(std::vector<Vertex> vertices);
         // Updates the view/projection buffer. Requires SetupPrimaryRenderPass to be called.
-        void SetPrimaryViewProjectionMatrices(mat4 viewMatrix, mat4 projectionMatrix);
+        void SetPrimaryViewProjectionMatrices(mat4 mvp);
 
         // Constructs a render pipeline. Requires renderpass, framebuffer...
         void TempPipelineStuff();
+        void TempCommandBuffer();
     };
 }

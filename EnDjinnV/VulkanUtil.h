@@ -1,9 +1,10 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-#include <vulkan/spirv.h>
 
 #include <vector>
+
+#include <boost/stacktrace.hpp>
 
 
 namespace Djn::VkUtil
@@ -92,7 +93,7 @@ namespace Djn::VkUtil
         const char* pMessage,
         void* pUserData)
     {
-        std::cout << "VkDbg X [" << pLayerPrefix << "]\t" << pMessage << std::endl;
+        std::cout << "VkDbg [" << pLayerPrefix << "]\t" << pMessage << std::endl;
         return VK_FALSE;
     }
 
@@ -104,6 +105,9 @@ namespace Djn::VkUtil
         void* pUserData)
     {
         std::cout << "VkDbg " << to_string(messageSeverity) << " " << pCallbackData->pMessage << std::endl;
+        if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+            std::cout << boost::stacktrace::to_string(boost::stacktrace::stacktrace()) << std::endl;
+        }
         return VK_FALSE;
     }
 }

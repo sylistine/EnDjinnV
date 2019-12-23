@@ -35,7 +35,7 @@ Platform::Platform(const char* appName)
     enabledExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
     //std::cout << "Available extensions: " << std::endl;
     //VkUtil::PrintInstanceExtensions();
     //std::cout << "Available layers: " << std::endl;
@@ -45,7 +45,7 @@ Platform::Platform(const char* appName)
     enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     enabledLayers.push_back(VkUtil::VK_LAYER_FULL_VALIDATION);
     //enabledLayers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
-#endif
+//#endif
 
     // Validate requested layers.
     std::vector<vk::LayerProperties> instLayers = vk::enumerateInstanceLayerProperties();
@@ -83,7 +83,7 @@ Platform::Platform(const char* appName)
     if (vkResult != vk::Result::eSuccess) throw Exception("Unable to create Win32 surface.");
 #endif
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
     // C-Style
     VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCI = {};
     debugUtilsMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -131,13 +131,13 @@ Platform::Platform(const char* appName)
     //    &callback);
     //debugCallbackInited = result == vk::Result::eSuccess;
     //std::cout << "Callback created with result " << vk::to_string(result) << std::endl;
-#endif
+//#endif
 }
 
 
 Platform::~Platform()
 {
-#ifdef _DEBUG
+//#ifdef _DEBUG
     if (debugReportCallbackInited) {
         // C-Style
         auto ddrc = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
@@ -150,7 +150,7 @@ Platform::~Platform()
         // CPP-Style
         //vkInstance.destroyDebugReportCallbackEXT(callback);
     }
-#endif
+//#endif
     vkDestroySurfaceKHR(vkInstance, surface, NULL);
     vkDestroyInstance(vkInstance, NULL);
 }

@@ -1,0 +1,29 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "GLSL To Spir-V",
+            "type": "shell",
+            "dependsOrder": "sequence",
+            "dependsOn": ["Basic Vert", "Basic Frag"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Basic Vert",
+            "command": "glslangValidator.exe",
+            "args": [" -e main -o basicVert.spv -V basic.vert"],
+            "group": "build"
+        },
+        {
+            "label": "Basic Frag",
+            "command": "glslangValidator.exe",
+            "args": [" -e main -o basicFrag.spv -V basic.frag"],
+            "group": "build"
+        }
+    ]
+}
