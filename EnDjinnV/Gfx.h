@@ -39,7 +39,7 @@ namespace Djn::Gfx
         extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         layers.push_back(VkUtil::VK_LAYER_FULL_VALIDATION);
-        layers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
+        //layers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
 #endif
 
     // Validate requested layers.
@@ -81,6 +81,7 @@ namespace Djn::Gfx
     {
     public:
         static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
+        static void Terminate();
         static void SetViewProjectionMatrices(mat4 mvp);
         static void SetVertices(std::vector<Vertex> vertices);
         static void SetupPipeline();
@@ -107,15 +108,15 @@ namespace Djn::Gfx
         Buffer vertexBuffer; // buffer for just the one set of verts.
         vk::VertexInputBindingDescription viBindingDesc;
         Buffer viewProjectionBuffer; // buffer for the main camera view/projection matrices.
-        vk::DescriptorSetLayout primaryDescriptorSetLayout;
         vk::DescriptorPool primaryDescriptorPool;
         vk::DescriptorSet primaryDescriptorSet;
+        vk::DescriptorSetLayout primaryDescriptorSetLayout;
         vk::PipelineLayout primaryPipelineLayout;
+        vk::PipelineCache pipelineCache;
         vk::Pipeline primaryPipeline;
 
         // Creates render pass, frame buffers, and descriptor sets.
         void SetupPrimaryRenderPass();
-        void TeardownPrimaryRenderPass();
         // Updates the VBO.
         void SetPrimaryVertexBuffer(std::vector<Vertex> vertices);
         // Updates the view/projection buffer. Requires SetupPrimaryRenderPass to be called.

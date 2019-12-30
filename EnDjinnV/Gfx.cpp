@@ -19,6 +19,15 @@ void Manager::Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface)
 }
 
 
+void Manager::Terminate()
+{
+    if (gfxInstance == NULL) {
+        std::cout << "Graphics has either not been initialized or has already been deleted." << std::endl;
+    }
+    delete gfxInstance;
+}
+
+
 void Manager::SetViewProjectionMatrices(mat4 mvp)
 {
     if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
@@ -113,9 +122,19 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
 
 Manager::~Manager()
 {
-    TeardownPrimaryRenderPass();
-
     auto d = device.GetLogical();
+    d.destroyPipeline(primaryPipeline);
+    d.destroyPipelineLayout(primaryPipelineLayout);
+    d.destroyPipelineCache(pipelineCache);
+    d.destroyRenderPass(primaryRenderPass);
+    d.destroyDescriptorSetLayout(primaryDescriptorSetLayout);
+    d.destroyDescriptorPool(primaryDescriptorPool);
+    for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
+        d.destroyFramebuffer(primaryFramebuffer[i]);
+    }
+    free(primaryFramebuffer);
+
+    
     d.destroyShaderModule(fragmentShaderModule);
     d.destroyShaderModule(vertexShaderModule);
     delete depthTexture;
@@ -221,6 +240,7 @@ void Manager::SetupPrimaryRenderPass()
     descPoolSize.descriptorCount = 1;
 
     vk::DescriptorPoolCreateInfo descPoolCI;
+    //descPoolCI.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
     descPoolCI.maxSets = 1;
     descPoolCI.poolSizeCount = 1;
     descPoolCI.pPoolSizes = &descPoolSize;
@@ -250,17 +270,6 @@ void Manager::SetupPrimaryRenderPass()
     descSetAllocInfo.descriptorSetCount = 1;
     descSetAllocInfo.pSetLayouts = &primaryDescriptorSetLayout;
     result = d.allocateDescriptorSets(&descSetAllocInfo, &primaryDescriptorSet);
-}
-
-
-void Manager::TeardownPrimaryRenderPass()
-{
-    auto d = device.GetLogical();
-    for (auto i = 0u; i < swapchain.GetImageCount(); i++) {
-        d.destroyFramebuffer(primaryFramebuffer[i]);
-    }
-    free(primaryFramebuffer);
-    d.destroyRenderPass(primaryRenderPass);
 }
 
 
@@ -418,7 +427,6 @@ void Manager::TempPipelineStuff()
     pipelineCI.basePipelineHandle = basePipeline;
     pipelineCI.basePipelineIndex = 0;
 
-    vk::PipelineCache pipelineCache;
     vk::PipelineCacheCreateInfo pipelineCacheCI;
     if (d.createPipelineCache(&pipelineCacheCI, NULL, &pipelineCache) != vk::Result::eSuccess)
         throw Exception("Failed to create pipeline cache.");
@@ -512,4 +520,7 @@ void Manager::TempCommandBuffer()
 
     result = device.GetPresentQueue().presentKHR(&presentInfoKHR);
     if (result != vk::Result::eSuccess) throw Exception(vk::to_string(result));
+
+    d.destroyFence(drawFence);
+    d.destroySemaphore(imageAcqSem);
 }

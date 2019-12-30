@@ -179,7 +179,6 @@
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vertex.cpp" />
-    <ClCompile Include="WindowsPlatformUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -203,7 +202,6 @@
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VulkanUtil.h" />
-    <ClInclude Include="WindowsPlatformUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basic.frag" />

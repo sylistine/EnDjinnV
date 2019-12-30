@@ -123,6 +123,7 @@ void Swapchain::FreeDeviceMemory()
 {
     if (!inited) return;
 
+    std::cout << "Deleting swapchain." << std::endl;
     for (auto i = 0u; i < swapchainImages.size(); i++) {
         vkDestroyImageView(vkDevice, swapchainImageViews[i], NULL);
     }

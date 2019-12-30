@@ -70,8 +70,8 @@ void Buffer::FreeMemory()
 {
     if (!inited) return;
 
-    d.freeMemory(memory, NULL);
     d.destroyBuffer(buffer, NULL);
+    d.freeMemory(memory, NULL);
 
     inited = false;
 }

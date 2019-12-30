@@ -28,6 +28,7 @@ namespace Djn::Gfx
             this->d = other.d;
             this->buffer = other.buffer;
             this->memory = other.memory;
+            this->inited = true;
             other.inited = false;
         }
         Buffer& operator=(Buffer&& other) noexcept
@@ -37,6 +38,7 @@ namespace Djn::Gfx
                 this->d = other.d;
                 this->buffer = other.buffer;
                 this->memory = other.memory;
+                this->inited = true;
                 other.inited = false;
             }
             return *this;

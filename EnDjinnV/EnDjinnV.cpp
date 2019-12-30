@@ -6,15 +6,20 @@
 #include "Gfx.h"
 
 // Temp. These should be moved out later.
-#include "Camera.h"
-#include "Vertex.h"
 #include "VulkanUtil.h"
 #include "MathUtil.h"
+
+#include "Camera.h"
+#include "Vertex.h"
 
 std::vector<Djn::Gfx::Vertex> GetDefaultVertices();
 std::vector<Djn::Gfx::Vertex> CubeMesh();
 
-void CreateDebugCallbacks(VkInstance instance);
+void CreateDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback);
+void DestroyDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback);
+
+auto appName = "Vulkan Exploration";
+
 
 int main()
 {
@@ -23,10 +28,9 @@ int main()
 #endif
     std::cout << "Starting EnDjinn." << std::endl;
     using namespace Djn;
-    auto appName = "Vulkan Exploration";
-    Platform::PlatformHandler* platformHandler = NULL;
-    VkInstance vkInstance;
 
+    // Platform initialization.
+    Djn::Platform::PlatformHandler* platformHandler = NULL;
     try {
         std::cout << "Constructing platform." << std::endl;
         Platform::PlatformHandler::Initialize(appName);
@@ -36,20 +40,25 @@ int main()
         return -1;
     }
 
+    // Graphics initialization.
+    VkInstance vkInstance;
     try {
         std::cout << "Initializing graphics." << std::endl;
         vkInstance = Gfx::CreateVulkanInstance(appName);
-        CreateDebugCallbacks(vkInstance);
-        platformHandler->createSurface(vkInstance); 
     } catch (std::exception & e) {
         std::cout << e.what() << std::endl;
         if (platformHandler) {
+            platformHandler->destroySurface();
             delete platformHandler;
         }
         return -1;
     }
 
+    VkDebugUtilsMessengerEXT messenger;
+    VkDebugReportCallbackEXT callback;
     try {
+        CreateDebugCallbacks(vkInstance, messenger, callback);
+        platformHandler->createSurface(vkInstance);
         Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
         Djn::Camera mainCamera(vec3(0.f, 0.f, -5.f));
         auto mvp = mainCamera.ClipMatrix() * mainCamera.ViewMatrix() * mainCamera.ProjectionMatrix();
@@ -73,18 +82,15 @@ int main()
     }
 
     std::cout << "Terminating EnDjinn" << std::endl;
-    vkDestroyInstance(vkInstance, NULL);
+    Gfx::Manager::Terminate();
     if (platformHandler) {
+        platformHandler->destroySurface();
         delete platformHandler;
     }
+    DestroyDebugCallbacks(vkInstance, messenger, callback);
+    vkDestroyInstance(vkInstance, NULL);
     return 0;
 }
-
-
-bool debugUtilsMessengerInited = false;
-VkDebugUtilsMessengerEXT messenger;
-bool debugReportCallbackInited = false;
-VkDebugReportCallbackEXT callback;
 
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
@@ -97,7 +103,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
     const char* pMessage,
     void* pUserData)
 {
-    std::cout << "VkDbg [" << pLayerPrefix << "]\t" << pMessage << std::endl;
+    std::cout << "Vulkan [" << pLayerPrefix << "]\t" << pMessage << std::endl << std::endl;
     return VK_FALSE;
 }
 
@@ -108,14 +114,16 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void* pUserData)
 {
-    std::cout << "VkDbg " << Djn::VkUtil::to_string(messageSeverity) << " " << pCallbackData->pMessage << std::endl;
+    std::cout << "Vulkan " << Djn::VkUtil::to_string(messageSeverity) << " " << pCallbackData->pMessage << std::endl;
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        std::cout << boost::stacktrace::to_string(boost::stacktrace::stacktrace()) << std::endl;
+        std::cout << boost::stacktrace::to_string(boost::stacktrace::stacktrace(8, 20)) << std::endl;
     }
+    std::cout << std::endl;
     return VK_FALSE;
 }
 
-void CreateDebugCallbacks(VkInstance instance)
+
+void CreateDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback)
 {
     VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCI = {};
     debugUtilsMessengerCI.sType =
@@ -131,10 +139,9 @@ void CreateDebugCallbacks(VkInstance instance)
         VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     debugUtilsMessengerCI.pfnUserCallback = DebugUtilsCallback;
     auto cduc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    if (cduc != nullptr) {
-        VkResult result = cduc((VkInstance)instance, &debugUtilsMessengerCI, NULL, &messenger);
-        debugUtilsMessengerInited = result == VK_SUCCESS;
-        std::cout << "Messenger created with result " << Djn::VkUtil::to_string(result) << std::endl;
+    if (cduc != NULL) {
+        VkResult result = cduc(instance, &debugUtilsMessengerCI, NULL, &messenger);
+        if (result != VK_SUCCESS) throw std::exception("Unable to create debug utils messenger.");
     } else {
         std::cout << "Unable to locate vkCreateDebugUtilsCallbackEXT function." << std::endl;
     }
@@ -149,12 +156,23 @@ void CreateDebugCallbacks(VkInstance instance)
         VK_DEBUG_REPORT_DEBUG_BIT_EXT;
     debugReportCallbackCI.pfnCallback = &DebugReportCallback;
     auto cdrc = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
-    if (cdrc != nullptr) {
-        VkResult result = cdrc((VkInstance)instance, &debugReportCallbackCI, NULL, &callback);
-        debugReportCallbackInited = result == VK_SUCCESS;
-        std::cout << "Callback created with result " << Djn::VkUtil::to_string(result) << std::endl;
+    if (cdrc != NULL) {
+        VkResult result = cdrc(instance, &debugReportCallbackCI, NULL, &callback);
+        if (result != VK_SUCCESS) throw std::exception("Unable to create debug report callback.");
     } else {
         std::cout << "Unable to locate vkCreateDebugReportCallbackEXT function." << std::endl;
+    }
+}
+
+void DestroyDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback)
+{
+    auto ddum = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (ddum != NULL) {
+        ddum(instance, messenger, NULL);
+    }
+    auto ddrc = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+    if (ddrc != NULL) {
+        ddrc(instance, callback, NULL);
     }
 }
 

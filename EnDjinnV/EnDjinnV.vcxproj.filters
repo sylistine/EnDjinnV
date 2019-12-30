@@ -27,9 +27,6 @@
     <ClCompile Include="Platform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WindowsPlatformUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="EnDjinnV.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,9 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Platform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowsPlatformUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EnDjinnV.h">

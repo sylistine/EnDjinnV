@@ -73,6 +73,6 @@ DepthTexture::DepthTexture(const Device& device, uint32_t width, uint32_t height
 DepthTexture::~DepthTexture()
 {
     vkDestroyImageView(vkDevice, view, NULL);
-    vkFreeMemory(vkDevice, memory, NULL);
     vkDestroyImage(vkDevice, image, NULL);
+    vkFreeMemory(vkDevice, memory, NULL);
 }
