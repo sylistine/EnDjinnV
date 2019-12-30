@@ -71,15 +71,13 @@ int main()
         while (!platformHandler->getIsQuitting()) {
             if (platformHandler->update()) {
                 if (platformHandler->getDidResize()) {
-                    // Trigger resize of swapchain and frame buffers.
+                    // TODO: Trigger resize of swapchain and frame buffers.
                     // VkSurfaceKHR updates window surface size automatically,
                     // so we do not need to pass them from the platform.
                 }
                 continue;
             }
-            std::cout << "Draw start" << std::endl;
             Gfx::Manager::Draw();
-            std::cout << "Draw end" << std::endl;
         }
     } catch (std::exception & e) {
         std::cout << e.what() << std::endl;
