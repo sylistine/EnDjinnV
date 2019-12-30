@@ -5,25 +5,9 @@
 
 using namespace Djn;
 
-Exception::Exception() : exception("")
-{
-    Init();
-}
+Exception::Exception() : Exception("") {}
 
 
-Exception::Exception(const char* str) : exception(str)
-{
-    Init();
-}
-
-
-Exception::Exception(std::string str) : exception(str.c_str())
-{
-    Init();
-}
-
-
-void Exception::Init()
-{
-    trace = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
-}
+Exception::Exception(std::string str) :
+    exception((str + "\n" + boost::stacktrace::to_string(boost::stacktrace::stacktrace())).c_str())
+{}

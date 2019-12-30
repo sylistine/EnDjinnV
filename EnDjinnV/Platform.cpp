@@ -1,156 +1,213 @@
-#include "EnDjinnV.h"
-
+#include "EndjinnV.h"
 #include "Platform.h"
 
-#include <vector>
-
-#ifdef _WIN32
-#include "WindowsPlatformUtil.h"
-#endif
-
-#include "VulkanUtil.h"
-
-
 using namespace Djn;
+using namespace Djn::Platform;
 
 
-Platform::Platform(const char* appName)
+LRESULT CALLBACK CWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    XPlat::Initialize(appName);
+    return PlatformHandler::GetHandler()->wndProc(hWnd, uMsg, wParam, lParam);
+}
 
-    /*
-     * Create vulkan instance and surface for the platform.
-     */
-     // Create Vulkan Instance.
-    vk::ApplicationInfo vkAppInfo;
-    vkAppInfo.pApplicationName = appName;
-    vkAppInfo.pEngineName = appName;
-    vkAppInfo.apiVersion = VK_API_VERSION_1_0;
+/* Begin Static Members */
+PlatformHandler* PlatformHandler::instance = nullptr;
 
-    std::vector<const char*> enabledExtensions;
-    std::vector<const char*> enabledLayers;
+PlatformHandler* PlatformHandler::GetHandler()
+{
+    if (!instance) throw Exception("Platform handler has not been initialized.");
+    return instance;
+}
 
-    enabledExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-#ifdef _WIN32
-    enabledExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#endif
-
-//#ifdef _DEBUG
-    //std::cout << "Available extensions: " << std::endl;
-    //VkUtil::PrintInstanceExtensions();
-    //std::cout << "Available layers: " << std::endl;
-    //VkUtil::PrintInstanceLayers();
-
-    enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-    enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    enabledLayers.push_back(VkUtil::VK_LAYER_FULL_VALIDATION);
-    //enabledLayers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
-//#endif
-
-    // Validate requested layers.
-    std::vector<vk::LayerProperties> instLayers = vk::enumerateInstanceLayerProperties();
-    for (auto& enabledLayer : enabledLayers) {
-        bool foundLayer = false;
-        for (auto& instLayer : instLayers) {
-            if (strcmp(instLayer.layerName, enabledLayer) == 0) {
-                foundLayer = true;
-                break;
-            }
-        }
-        if (!foundLayer) {
-            std::cout << "Unable to find required layer " << enabledLayer << std::endl;
-            throw Exception("Unable to find required vulkan layer.");
-        }
+void PlatformHandler::Initialize(const char* appName)
+{
+    if (instance) {
+        throw Exception("Window is already initialized.");
     }
 
-    // Create VK Instance.
-    vk::InstanceCreateInfo vkInstanceCI;
-    vkInstanceCI.pApplicationInfo = &vkAppInfo;
-    vkInstanceCI.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size());
-    vkInstanceCI.ppEnabledExtensionNames = enabledExtensions.data();
-    vkInstanceCI.enabledLayerCount = static_cast<uint32_t>(enabledLayers.size());
-    vkInstanceCI.ppEnabledLayerNames = enabledLayers.data();
+    instance = new PlatformHandler(appName);
+}
+/* End Static Members */
 
-    vk::Result vkResult = vk::createInstance(&vkInstanceCI, NULL, &vkInstance);
-    if (vkResult != vk::Result::eSuccess) throw Exception("Unable to create vulkan instance.");
+PlatformHandler::PlatformHandler(const char* appName) :
+    windowClassName(appName),
+    moduleHandle(GetModuleHandle(NULL)),
+    windowHandle(0),
+    isQuitting(0)
+{
+    surface.state = Surface::State::Windowed;
+    surface.posX = 0;
+    surface.posY = 0;
+    surface.width = 512;
+    surface.height = 512;
 
-    // Create vulkan surface from platform window.
-#ifdef _WIN32
-    vk::Win32SurfaceCreateInfoKHR surfaceCreateInfo;
-    surfaceCreateInfo.hinstance = XPlat::Windows::GetModuleInstanceHandle();
-    surfaceCreateInfo.hwnd = XPlat::Windows::GetWindowHandle();
-    vkResult = vkInstance.createWin32SurfaceKHR(&surfaceCreateInfo, NULL, &surface);
-    if (vkResult != vk::Result::eSuccess) throw Exception("Unable to create Win32 surface.");
-#endif
+    WNDCLASSEX wndClass;
+    wndClass.cbSize = sizeof(WNDCLASSEX);
+    wndClass.style = CS_HREDRAW | CS_VREDRAW;
+    wndClass.lpfnWndProc = CWndProc;
+    wndClass.cbClsExtra = 0;
+    wndClass.cbWndExtra = 0;
+    wndClass.hInstance = moduleHandle;
+    wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    wndClass.lpszMenuName = NULL;
+    wndClass.lpszClassName = windowClassName;
+    wndClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
+    if (!RegisterClassEx(&wndClass)) {
+        throw Exception("Unable to register window class.");
+    }
+}
 
-//#ifdef _DEBUG
-    // C-Style
-    VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCI = {};
-    debugUtilsMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    debugUtilsMessengerCI.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    debugUtilsMessengerCI.pfnUserCallback = VkUtil::DebugUtilsCallback;
-    auto cduc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugUtilsMessengerEXT");
-    if (cduc != nullptr) {
-        VkResult result = cduc((VkInstance)vkInstance, &debugUtilsMessengerCI, NULL, &messenger);
-        debugUtilsMessengerInited = result == VK_SUCCESS;
-        std::cout << "Messenger created with result " << VkUtil::to_string(result) << std::endl;
-    } else {
-        std::cout << "Unable to locate vkCreateDebugUtilsCallbackEXT function." << std::endl;
+void PlatformHandler::createSurface(VkInstance instance)
+{
+    vkInstance = instance;
+
+    RECT windowRect = { surface.posX, surface.posY, surface.width, surface.height };
+    AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
+    windowHandle = CreateWindowEx(
+        0,
+        windowClassName,
+        windowClassName,
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        surface.posX, surface.posY,
+        windowRect.right - windowRect.left,
+        windowRect.bottom - windowRect.top,
+        NULL,
+        NULL,
+        moduleHandle,
+        NULL);
+    if (!windowHandle) {
+        throw Exception("Unable to create window.");
     }
 
-    VkDebugReportCallbackCreateInfoEXT debugReportCallbackCI = {};
-    debugReportCallbackCI.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-    debugReportCallbackCI.flags =
-        VK_DEBUG_REPORT_ERROR_BIT_EXT |
-        VK_DEBUG_REPORT_WARNING_BIT_EXT |
-        VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
-        VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
-        VK_DEBUG_REPORT_DEBUG_BIT_EXT;
-    debugReportCallbackCI.pfnCallback = &VkUtil::DebugReportCallback;
-    auto cdrc = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
-    if (cdrc != nullptr) {
-        VkResult result = cdrc((VkInstance)vkInstance, &debugReportCallbackCI, NULL, &callback);
-        debugReportCallbackInited = result == VK_SUCCESS;
-        std::cout << "Callback created with result " << VkUtil::to_string(result) << std::endl;
-    } else {
-        std::cout << "Unable to locate vkCreateDebugReportCallbackEXT function." << std::endl;
-    }
+    VkWin32SurfaceCreateInfoKHR surfaceCI;
+    surfaceCI.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    surfaceCI.flags = 0;
+    surfaceCI.hinstance = moduleHandle;
+    surfaceCI.hwnd = windowHandle;
+    surfaceCI.pNext = 0;
+    VkResult result = vkCreateWin32SurfaceKHR(vkInstance, &surfaceCI, NULL, &renderSurface);
+    if (result != VK_SUCCESS) throw Exception("Unable to create Win32 surface.");
+}
 
-    // CPP-Style
-    //vk::DebugReportCallbackCreateInfoEXT debugReportCallbackCI;
-    //debugReportCallbackCI.flags = vk::DebugReportFlagBitsEXT::eError |
-    //    vk::DebugReportFlagBitsEXT::eWarning |
-    //    vk::DebugReportFlagBitsEXT::eDebug |
-    //    vk::DebugReportFlagBitsEXT::eInformation |
-    //    vk::DebugReportFlagBitsEXT::ePerformanceWarning;
-    //debugReportCallbackCI.pfnCallback = &MyDebugReportCallback;
-    //vk::Result result = vkInstance.createDebugReportCallbackEXT(
-    //    &debugReportCallbackCI,
-    //    NULL,
-    //    &callback);
-    //debugCallbackInited = result == vk::Result::eSuccess;
-    //std::cout << "Callback created with result " << vk::to_string(result) << std::endl;
-//#endif
+void PlatformHandler::destroySurface()
+{
+    vkDestroySurfaceKHR(vkInstance, renderSurface, NULL);
 }
 
 
-Platform::~Platform()
+bool PlatformHandler::update()
 {
-//#ifdef _DEBUG
-    if (debugReportCallbackInited) {
-        // C-Style
-        auto ddrc = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
-        if (ddrc != nullptr) {
-            ddrc((VkInstance)vkInstance, callback, NULL);
-        } else {
-            std::cout << "Debug callback was initted but destroy function could not be located." << std::endl;
-        }
+    didResize = false;
 
-        // CPP-Style
-        //vkInstance.destroyDebugReportCallbackEXT(callback);
+    MSG systemMessage = {};
+    if (PeekMessage(&systemMessage, 0, 0, 0, PM_REMOVE)) {
+        if (systemMessage.message == WM_QUIT) {
+            isQuitting = true;
+        } else {
+            TranslateMessage(&systemMessage);
+            DispatchMessage(&systemMessage);
+        }
+        return true;
     }
-//#endif
-    vkDestroySurfaceKHR(vkInstance, surface, NULL);
-    vkDestroyInstance(vkInstance, NULL);
+    return false;
+}
+
+LRESULT PlatformHandler::wndProc(HWND hWnd, UINT msg, WPARAM wParam,
+    LPARAM lParam)
+{
+    /* Handling the following messages:
+     * ACTIVATE
+     * SIZE
+     * ENTERSIZEMOVE
+     * EXITSIZEMOVE
+     * DESTROY
+     * MENUCHAR
+     * GETMINMAXINFO
+     * L- M- RBUTTONDOWN
+     * L- M- RBUTTONUP
+     * MOUSEMOVE
+     * KEYUP
+     */
+    switch (msg) {
+    case WM_ACTIVATE:
+        if (LOWORD(wParam) == WA_INACTIVE) {
+            // pause
+            // stop timer
+        } else {
+            // unpause
+            // start timer
+        }
+        return 0;
+    case WM_SIZE:
+        surface.width = LOWORD(lParam);
+        surface.height = HIWORD(lParam);
+        if (wParam == SIZE_MINIMIZED) {
+            surface.state = Surface::State::Minimized;
+            // app paused = true
+        } else if (wParam == SIZE_MAXIMIZED) {
+            surface.state = Surface::State::Maximized;
+            // app paused = false
+            // Trigger buffer resizes.
+        } else if (wParam == SIZE_RESTORED) {
+            switch (surface.state) {
+            case Surface::State::Minimized:
+            case Surface::State::Maximized:
+                surface.state = Surface::State::Windowed;
+                didResize = true;
+                // app paused = false
+                break;
+            case Surface::State::Resizing:
+                break;
+            default:
+                didResize = true;
+                break;
+            }
+        }
+        return 0;
+    case WM_ENTERSIZEMOVE:
+        std::cout << "Enter resizing" << std::endl;
+        surface.state = Surface::State::Resizing;
+        // app paused = true
+        // stop timer.
+        return 0;
+    case WM_EXITSIZEMOVE:
+        std::cout << "Exit resizing" << std::endl;
+        surface.state = Surface::State::Windowed;
+        didResize = true;
+        return 0;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+    case WM_QUIT:
+        isQuitting = true;
+        return 0;
+    case WM_MENUCHAR:
+        return MAKELRESULT(0, MNC_CLOSE);
+    case WM_GETMINMAXINFO:
+        reinterpret_cast<MINMAXINFO*>(lParam)->ptMinTrackSize.x = 200;
+        reinterpret_cast<MINMAXINFO*>(lParam)->ptMinTrackSize.y = 200;
+        return 0;
+    case WM_LBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+        //OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_LBUTTONUP:
+    case WM_MBUTTONUP:
+    case WM_RBUTTONUP:
+        //OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_MOUSEMOVE:
+        //OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_KEYUP:
+        if (wParam == VK_ESCAPE) {
+            PostQuitMessage(0);
+        }
+        return 0;
+    }
+
+    return DefWindowProc(hWnd, msg, wParam, lParam);
 }

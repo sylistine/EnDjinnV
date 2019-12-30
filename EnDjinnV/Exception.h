@@ -11,11 +11,6 @@ namespace Djn
     {
     public:
         Exception();
-        Exception(const char* str);
         Exception(std::string str);
-        const char* StackTrace() const { return trace.c_str(); }
-    private:
-        void Init();
-        std::string trace;
     };
 }

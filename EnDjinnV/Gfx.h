@@ -12,13 +12,79 @@
 
 namespace Djn::Gfx
 {
+    static VkInstance CreateVulkanInstance(const char* appName)
+    {
+        VkApplicationInfo appInfo = {};
+        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        appInfo.pApplicationName = appName;
+        appInfo.applicationVersion = 1;
+        appInfo.pEngineName = appName;
+        appInfo.engineVersion = 1;
+        appInfo.apiVersion = VK_API_VERSION_1_0;
+
+        std::vector<const char*> extensions;
+        std::vector<const char*> layers;
+
+        extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+#ifdef _WIN32
+        extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#endif
+
+#ifdef _DEBUG
+        //std::cout << "Available extensions: " << std::endl;
+        //VkUtil::PrintInstanceExtensions();
+        //std::cout << "Available layers: " << std::endl;
+        //VkUtil::PrintInstanceLayers();
+
+        extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        layers.push_back(VkUtil::VK_LAYER_FULL_VALIDATION);
+        layers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
+#endif
+
+    // Validate requested layers.
+        uint32_t layerCount;
+        vkEnumerateInstanceLayerProperties(&layerCount, NULL);
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+        for (auto& layer : layers) {
+            bool foundLayer = false;
+            for (auto& availableLayer : availableLayers) {
+                if (strcmp(availableLayer.layerName, layer) == 0) {
+                    foundLayer = true;
+                    break;
+                }
+            }
+            if (!foundLayer) {
+                std::cout << "Unable to find required layer " << layer << std::endl;
+                throw Exception("Unable to find required vulkan layer.");
+            }
+        }
+
+        VkInstanceCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createInfo.pApplicationInfo = &appInfo;
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+        createInfo.ppEnabledExtensionNames = extensions.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+        createInfo.ppEnabledLayerNames = layers.data();
+
+        VkInstance instance;
+        VkResult result = vkCreateInstance(&createInfo, NULL, &instance);
+        if (result != VK_SUCCESS) throw Exception("Unable to create vulkan instance.");
+
+        return instance;
+    }
+
     class Manager
     {
     public:
         static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
         static void SetViewProjectionMatrices(mat4 mvp);
         static void SetVertices(std::vector<Vertex> vertices);
-        static void TempBuildAndRunPipeline();
+        static void SetupPipeline();
+        static void Draw();
     private:
         static Manager* gfxInstance;
         Manager(vk::Instance vkInstance, vk::SurfaceKHR surface);

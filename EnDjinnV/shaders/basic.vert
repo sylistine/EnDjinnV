@@ -22,18 +22,5 @@ void main() {
     mvp[2] = vec4(0.448109, -0.232264, 5.720718, -1.0);
     mvp[3] = vec4(0.089532, -0.046406, 0.086473, 0.0);
 
-    // 0 1 2  3 4 5    6 7 8  9 a b // vId
-    // 0 0 0  1 1 1    2 2 2  3 3 3 // tId (vId/3)
-    // 0 1 2  0 1 2    0 1 2  0 1 2 // tvId
-    // 0 0 0  0 0 0    1 1 1  1 1 1 // fId
-    // 0 1 2  3 4 5    0 1 2  3 4 5
-    // 0 0 1  1 1 0    1 1 2  2 2 1 // x
-    // 0 1 1  1 0 0    0 1 1  1 0 0 // y
-    float triangleId = floor(gl_VertexIndex / 3);
-    float faceId = floor(triangleId / 2);
-    gl_Position.x = floor(gl_VertexIndex / 2);
-    gl_Position.y = floor(gl_VertexIndex % 2);
-    gl_Position.z = 0.25;
-    gl_Position.w = 1;
-    //gl_Position = mvp * pos;
+    gl_Position = mvp * pos;
 }

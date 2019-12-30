@@ -12,6 +12,7 @@ CommandPool::CommandPool(vk::Device device, uint32_t queueFamilyIndex, uint32_t 
     vkDevice(device)
 {
     vk::CommandPoolCreateInfo commandPoolCI;
+    commandPoolCI.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
     commandPoolCI.queueFamilyIndex = queueFamilyIndex;
     vk::Result result = vkDevice.createCommandPool(&commandPoolCI, NULL, &pool);
     if (result != vk::Result::eSuccess) throw Exception("Unable to create command pool.");

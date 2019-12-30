@@ -33,10 +33,17 @@ void Manager::SetVertices(std::vector<Vertex> vertices)
 }
 
 
-void Manager::TempBuildAndRunPipeline()
+void Manager::SetupPipeline()
 {
     if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
     gfxInstance->TempPipelineStuff();
+}
+
+
+void Manager::Draw()
+{
+    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
+    gfxInstance->TempCommandBuffer();
 }
 
 
@@ -50,7 +57,7 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     device(primaryGPU)
 {
     vk::Result result;
-    
+
     auto gfxQueueFamilyIdx = primaryGPU.GetGraphicsQueueFamilyIndex();
     auto presentQueueFamilyIdx = primaryGPU.GetPresentQueueFamilyIndex();
     gfxCommandPool = CommandPool(device.GetLogical(), gfxQueueFamilyIdx, 1);
@@ -318,7 +325,7 @@ void Manager::TempPipelineStuff()
 
     vk::PipelineInputAssemblyStateCreateInfo ia;
     ia.primitiveRestartEnable = false;
-    ia.topology = vk::PrimitiveTopology::eTriangleStrip;
+    ia.topology = vk::PrimitiveTopology::eTriangleList;
 
     vk::PipelineTessellationStateCreateInfo ts;
 
@@ -384,9 +391,8 @@ void Manager::TempPipelineStuff()
     ds.back.writeMask = 0;
     ds.front = ds.back;
 
-    vk::SampleMask sampleMask;
     vk::PipelineMultisampleStateCreateInfo ms;
-    ms.pSampleMask = &sampleMask;
+    ms.pSampleMask = NULL;
     ms.rasterizationSamples = vk::SampleCountFlagBits::e1;
     ms.sampleShadingEnable = false;
     ms.alphaToCoverageEnable = false;
@@ -418,8 +424,6 @@ void Manager::TempPipelineStuff()
         throw Exception("Failed to create pipeline cache.");
     vk::Result result = d.createGraphicsPipelines(pipelineCache, 1, &pipelineCI, NULL, &primaryPipeline);
     if (result != vk::Result::eSuccess) throw Exception("Unable to create graphics pipeline.");
-
-    TempCommandBuffer();
 }
 
 
