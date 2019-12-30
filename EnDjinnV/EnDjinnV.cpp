@@ -54,10 +54,12 @@ int main()
         return -1;
     }
 
+#ifdef _DEBUG
     VkDebugUtilsMessengerEXT messenger;
     VkDebugReportCallbackEXT callback;
+    CreateDebugCallbacks(vkInstance, messenger, callback);
+#endif
     try {
-        CreateDebugCallbacks(vkInstance, messenger, callback);
         platformHandler->createSurface(vkInstance);
         Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
         Djn::Camera mainCamera(vec3(0.f, 0.f, -5.f));
@@ -75,7 +77,9 @@ int main()
                 }
                 continue;
             }
+            std::cout << "Draw start" << std::endl;
             Gfx::Manager::Draw();
+            std::cout << "Draw end" << std::endl;
         }
     } catch (std::exception & e) {
         std::cout << e.what() << std::endl;
@@ -87,7 +91,9 @@ int main()
         platformHandler->destroySurface();
         delete platformHandler;
     }
+#ifdef _DEBUG
     DestroyDebugCallbacks(vkInstance, messenger, callback);
+#endif
     vkDestroyInstance(vkInstance, NULL);
     return 0;
 }

@@ -508,9 +508,10 @@ void Manager::TempCommandBuffer()
     result = device.GetGraphicsQueue().submit(1, &submitInfo, drawFence);
     if (result != vk::Result::eSuccess) throw Exception("Unable to submit graphics queue.");
 
+    auto swapchainKHR = swapchain.GetSwapchainKHR();
     vk::PresentInfoKHR presentInfoKHR;
     presentInfoKHR.swapchainCount = 1;
-    presentInfoKHR.pSwapchains = &swapchain.GetSwapchainKHR();
+    presentInfoKHR.pSwapchains = &swapchainKHR;
     presentInfoKHR.pImageIndices = &imgIdx;
 
     do {
