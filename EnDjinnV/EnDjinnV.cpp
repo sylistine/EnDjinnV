@@ -62,9 +62,8 @@ int main()
     try {
         platformHandler->createSurface(vkInstance);
         Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
-        Djn::Camera mainCamera(vec3(0.f, 0.f, -5.f));
-        auto mvp = mainCamera.ClipMatrix() * mainCamera.ViewMatrix() * mainCamera.ProjectionMatrix();
-        Gfx::Manager::SetViewProjectionMatrices(mvp);
+        Djn::Camera mainCamera(vec3(0.f, 0.f, -10.f));
+        Gfx::Manager::SetViewProjectionMatrices(mainCamera.ViewMatrix(), mainCamera.ProjectionMatrix());
         Gfx::Manager::SetVertices(CubeMesh());
         Gfx::Manager::SetupPipeline();
 

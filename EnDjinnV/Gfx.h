@@ -39,7 +39,7 @@ namespace Djn::Gfx
         extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         layers.push_back(VkUtil::VK_LAYER_FULL_VALIDATION);
-        //layers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
+        layers.push_back(VkUtil::VK_LAYER_RENDERDOC_CAPTURE);
 #endif
 
     // Validate requested layers.
@@ -82,7 +82,7 @@ namespace Djn::Gfx
     public:
         static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
         static void Terminate();
-        static void SetViewProjectionMatrices(mat4 mvp);
+        static void SetViewProjectionMatrices(mat4 view, mat4 proj);
         static void SetVertices(std::vector<Vertex> vertices);
         static void SetupPipeline();
         static void Draw();
@@ -120,7 +120,7 @@ namespace Djn::Gfx
         // Updates the VBO.
         void SetPrimaryVertexBuffer(std::vector<Vertex> vertices);
         // Updates the view/projection buffer. Requires SetupPrimaryRenderPass to be called.
-        void SetPrimaryViewProjectionMatrices(mat4 mvp);
+        void SetPrimaryViewProjectionMatrices(mat4 view, mat4 proj);
 
         // Constructs a render pipeline. Requires renderpass, framebuffer...
         void TempPipelineStuff();

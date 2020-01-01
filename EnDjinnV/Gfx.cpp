@@ -11,6 +11,9 @@
 using namespace Djn::Gfx;
 
 
+const vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
+
+
 // Begin Graphics Manager Statics
 void Manager::Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface)
 {
@@ -28,10 +31,10 @@ void Manager::Terminate()
 }
 
 
-void Manager::SetViewProjectionMatrices(mat4 mvp)
+void Manager::SetViewProjectionMatrices(mat4 view, mat4 proj)
 {
     if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
-    gfxInstance->SetPrimaryViewProjectionMatrices(mvp);
+    gfxInstance->SetPrimaryViewProjectionMatrices(view, proj);
 }
 
 
@@ -149,7 +152,7 @@ void Manager::SetupPrimaryRenderPass()
     vk::AttachmentDescription attachmentDescs[attachmentDescCount];
     // Primary color attachment.
     attachmentDescs[0].format = primaryGPU.GetOutputFormat();
-    attachmentDescs[0].samples = vk::SampleCountFlagBits::e1;
+    attachmentDescs[0].samples = sampleCount;
     attachmentDescs[0].loadOp = vk::AttachmentLoadOp::eClear;
     attachmentDescs[0].storeOp = vk::AttachmentStoreOp::eStore;
     attachmentDescs[0].stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
@@ -158,7 +161,7 @@ void Manager::SetupPrimaryRenderPass()
     attachmentDescs[0].finalLayout = vk::ImageLayout::ePresentSrcKHR;
     // Depth attachment.
     attachmentDescs[1].format = vk::Format::eD16Unorm;
-    attachmentDescs[1].samples = vk::SampleCountFlagBits::e1;
+    attachmentDescs[1].samples = sampleCount;
     attachmentDescs[1].loadOp = vk::AttachmentLoadOp::eClear;
     attachmentDescs[1].storeOp = vk::AttachmentStoreOp::eDontCare;
     attachmentDescs[1].stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
@@ -286,18 +289,42 @@ void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
 }
 
 
-void Manager::SetPrimaryViewProjectionMatrices(mat4 mvp)
+void Manager::SetPrimaryViewProjectionMatrices(mat4 view, mat4 proj)
 {
-    // TODO: this buffer should probably only be created once, with contents updated each frame.
+    mat4 p = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+    mat4 v= glm::lookAt(glm::vec3(-5, 3, -10),  // Camera is at (-5,3,-10), in World Space
+        glm::vec3(0, 0, 0),     // and looks at the origin
+        glm::vec3(0, -1, 0)     // Head is up (set to 0,-1,0 to look upside-down)
+    );
+    mat4 model = glm::mat4(1.0f);
+
+    // Vulkan clip space has inverted Y and half Z.
+    // clang-format off
+    mat4 clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, -1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.5f, 0.0f,
+        0.0f, 0.0f, 0.5f, 1.0f);
+    // clang-format on
+    auto mvp = clip * p * v * model;
     viewProjectionBuffer = Buffer(
         device, vk::BufferUsageFlagBits::eUniformBuffer,
         &mvp, sizeof(mvp));
-
-    // Write to the set.
     vk::DescriptorBufferInfo descBufferInfo;
     descBufferInfo.buffer = viewProjectionBuffer.Get();
     descBufferInfo.offset = 0;
-    descBufferInfo.range = sizeof(mat4);
+    descBufferInfo.range = sizeof(mvp);
+
+    //mat4 viewProj[] = { view, proj };
+    //// TODO: this buffer should probably only be created once, with contents updated each frame.
+    //viewProjectionBuffer = Buffer(
+    //    device, vk::BufferUsageFlagBits::eUniformBuffer,
+    //    viewProj, sizeof(viewProj));
+
+    //// Write to the set.
+    //vk::DescriptorBufferInfo descBufferInfo;
+    //descBufferInfo.buffer = viewProjectionBuffer.Get();
+    //descBufferInfo.offset = 0;
+    //descBufferInfo.range = sizeof(viewProj);
 
     vk::WriteDescriptorSet writeInfo;
     writeInfo.dstSet = primaryDescriptorSet;
@@ -402,7 +429,7 @@ void Manager::TempPipelineStuff()
 
     vk::PipelineMultisampleStateCreateInfo ms;
     ms.pSampleMask = NULL;
-    ms.rasterizationSamples = vk::SampleCountFlagBits::e1;
+    ms.rasterizationSamples = sampleCount;
     ms.sampleShadingEnable = false;
     ms.alphaToCoverageEnable = false;
     ms.alphaToOneEnable = false;

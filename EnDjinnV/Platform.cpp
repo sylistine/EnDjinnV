@@ -38,8 +38,8 @@ PlatformHandler::PlatformHandler(const char* appName) :
     surface.state = Surface::State::Windowed;
     surface.posX = 0;
     surface.posY = 0;
-    surface.width = 512;
-    surface.height = 512;
+    surface.width = 1024;
+    surface.height = 1024;
 
     WNDCLASSEX wndClass;
     wndClass.cbSize = sizeof(WNDCLASSEX);
