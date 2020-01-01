@@ -3,6 +3,8 @@ EnDjinnV is a self-indulgent Vulkan research project and "simple" game engine. S
 
 !!The [LunarG Vulkan Tutorial](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html) has been completed!!
 
+![Sample Image](/Samples/renderdoc-analysis2.png)
+
 # Features
 - Vulkan initialization and basic rendering proven
 - Vulkan Debug/Validation layers
