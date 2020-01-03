@@ -15,14 +15,20 @@
         },
         {
             "label": "Basic Vert",
+            "problemMatcher": {
+                "fileLocation": ["relative", "${workspaceFolder}"]
+            },
             "command": "glslangValidator.exe",
-            "args": [" -e main -o basicVert.spv -V basic.vert"],
+            "args": ["-e", "main", "-o", "basicVert.spv", "-V", "basic.vert"],
             "group": "build"
         },
         {
             "label": "Basic Frag",
+            "problemMatcher": {
+                "fileLocation": ["relative", "${workspaceFolder}"]
+            },
             "command": "glslangValidator.exe",
-            "args": [" -e main -o basicFrag.spv -V basic.frag"],
+            "args": ["-e", "main", "-o", "basicFrag.spv", "-V", "basic.frag"],
             "group": "build"
         }
     ]

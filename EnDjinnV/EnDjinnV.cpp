@@ -62,8 +62,13 @@ int main()
     try {
         platformHandler->createSurface(vkInstance);
         Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
-        Djn::Camera mainCamera(vec3(0.f, 0.f, -10.f));
-        Gfx::Manager::SetViewProjectionMatrices(mainCamera.ViewMatrix(), mainCamera.ProjectionMatrix());
+        Djn::Camera mainCamera(vec3(2.0f, 2.0f, 3.0f));
+        Gfx::Manager::SetCameraParameters(
+            mainCamera.getFovY(),
+            mainCamera.getNearClip(),
+            mainCamera.getFarClip(),
+            mainCamera.getPosition(),
+            mainCamera.getRotation());
         Gfx::Manager::SetVertices(CubeMesh());
         Gfx::Manager::SetupPipeline();
 

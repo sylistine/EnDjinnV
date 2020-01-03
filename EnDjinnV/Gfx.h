@@ -82,7 +82,7 @@ namespace Djn::Gfx
     public:
         static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
         static void Terminate();
-        static void SetViewProjectionMatrices(mat4 view, mat4 proj);
+        static void SetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot);
         static void SetVertices(std::vector<Vertex> vertices);
         static void SetupPipeline();
         static void Draw();
@@ -120,7 +120,7 @@ namespace Djn::Gfx
         // Updates the VBO.
         void SetPrimaryVertexBuffer(std::vector<Vertex> vertices);
         // Updates the view/projection buffer. Requires SetupPrimaryRenderPass to be called.
-        void SetPrimaryViewProjectionMatrices(mat4 view, mat4 proj);
+        void TempSetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot);
 
         // Constructs a render pipeline. Requires renderpass, framebuffer...
         void TempPipelineStuff();

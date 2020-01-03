@@ -31,10 +31,10 @@ void Manager::Terminate()
 }
 
 
-void Manager::SetViewProjectionMatrices(mat4 view, mat4 proj)
+void Manager::SetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot)
 {
     if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
-    gfxInstance->SetPrimaryViewProjectionMatrices(view, proj);
+    gfxInstance->TempSetCameraParameters(fovy, nearClip, farClip, pos, rot);
 }
 
 
@@ -289,42 +289,30 @@ void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
 }
 
 
-void Manager::SetPrimaryViewProjectionMatrices(mat4 view, mat4 proj)
+void Manager::TempSetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot)
 {
-    mat4 p = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-    mat4 v= glm::lookAt(glm::vec3(-5, 3, -10),  // Camera is at (-5,3,-10), in World Space
-        glm::vec3(0, 0, 0),     // and looks at the origin
-        glm::vec3(0, -1, 0)     // Head is up (set to 0,-1,0 to look upside-down)
-    );
     mat4 model = glm::mat4(1.0f);
+    mat4 I = glm::mat4(1);
+    mat4 view = glm::translate(I, -pos);
+
+    auto extents = primaryGPU.GetSurfaceCapabilities().currentExtent;
+    mat4 proj = glm::perspective(fovy, (float)extents.width / (float)extents.height, nearClip, farClip);
 
     // Vulkan clip space has inverted Y and half Z.
-    // clang-format off
     mat4 clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, -1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.5f, 0.0f,
         0.0f, 0.0f, 0.5f, 1.0f);
-    // clang-format on
-    auto mvp = clip * p * v * model;
+
+    // Unmultiplied MVPC
+    mat4 mvpc[] = { clip, proj, view, model, clip * proj * view * model };
     viewProjectionBuffer = Buffer(
         device, vk::BufferUsageFlagBits::eUniformBuffer,
-        &mvp, sizeof(mvp));
+        mvpc, sizeof(mvpc));
     vk::DescriptorBufferInfo descBufferInfo;
     descBufferInfo.buffer = viewProjectionBuffer.Get();
     descBufferInfo.offset = 0;
-    descBufferInfo.range = sizeof(mvp);
-
-    //mat4 viewProj[] = { view, proj };
-    //// TODO: this buffer should probably only be created once, with contents updated each frame.
-    //viewProjectionBuffer = Buffer(
-    //    device, vk::BufferUsageFlagBits::eUniformBuffer,
-    //    viewProj, sizeof(viewProj));
-
-    //// Write to the set.
-    //vk::DescriptorBufferInfo descBufferInfo;
-    //descBufferInfo.buffer = viewProjectionBuffer.Get();
-    //descBufferInfo.offset = 0;
-    //descBufferInfo.range = sizeof(viewProj);
+    descBufferInfo.range = sizeof(mvpc);
 
     vk::WriteDescriptorSet writeInfo;
     writeInfo.dstSet = primaryDescriptorSet;

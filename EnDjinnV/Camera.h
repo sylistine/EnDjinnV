@@ -12,9 +12,12 @@ namespace Djn
     public:
         Camera();
         Camera(vec3 pos);
-        mat4 ProjectionMatrix() const;
-        mat4 ViewMatrix() const;
-        mat4 ClipMatrix() const;
+        vec3 getPosition() const { return transform.Position(); }
+        quat getRotation() const { return transform.Rotation(); }
+        float getFovY() const { return fovy; }
+        float getAspect() const { return aspect; }
+        float getNearClip() const { return nearClip; }
+        float getFarClip() const { return farClip; }
     private:
         Transform transform;
         float fovy;
