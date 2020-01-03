@@ -18,7 +18,7 @@ std::vector<Djn::Gfx::Vertex> CubeMesh();
 void CreateDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback);
 void DestroyDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback);
 
-auto appName = "Vulkan Exploration";
+auto appName = "EnDjinn v0.1";
 
 
 int main()
