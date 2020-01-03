@@ -1,9 +1,9 @@
 # EnDjinnV
-EnDjinnV is a self-indulgent rendering technology research project and "simple" game engine. Self-indulgent because it is focused on slow-and-deliberate bleeding-edge rendering technology and game engine architecture: the sort of slow-and-deliberate meditation that is generally unacceptable in a live development/production environment.
+EnDjinnV is a self-indulgent rendering technology and game engine research project. Self-indulgent because focuses on slow-and-deliberate bleeding-edge rendering technology and game engine architecture: the sort of slow-and-deliberate meditation that is generally unacceptable in a live development/production environment.
 
 !!The [LunarG Vulkan Tutorial](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html) has been completed!!
 
-![Sample Image](/Samples/renderdoc-analysis2.png)
+![Sample Image](/Samples/renderdoc-analysis3.png)
 
 # Features
 - Vulkan initialization and basic rendering proven
@@ -11,7 +11,8 @@ EnDjinnV is a self-indulgent rendering technology research project and "simple" 
 - Renderdoc integration
 
 # Next Steps
-- Implement game engine style Camera/Scene/Lighting objects. We want to set camera transform arbitrarily, have an arbitrary number of meshes (and draw calls), and at least very basic lighting.
+- Get camera rotation functional.
+- Implement game engine style Scene/Lighting objects. We want to set camera transform arbitrarily, have an arbitrary number of meshes (and draw calls), and at least very basic lighting.
 - Classes were made to be responsible for cleaning up GPU memory (i.e.: Djn::Gfx::Buffer). These classes have move semantics and somewhat behave like std::unique_ptr, but more robust types are already available via `vulkan.hpp`, so we should probably switch to those to reduce duplication and cruft.
 
 # Goals
@@ -23,11 +24,11 @@ EnDjinnV is a self-indulgent rendering technology research project and "simple" 
   - GLTF format 3d models
   - GLSL shaders
   - any sort of audio or other necessary graphics
-- Profiling tool and other debug integrations
-  - Something? for CPU performance and memory profiling
+- CPU performance and memory profiling instrumentation
   
 ## Long Term
-- full-featured Vulkan-only game engine
+- Audio
+- Physics
 - RayTracing
 - VR
 - Android/Oculus Quest support
