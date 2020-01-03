@@ -1,10 +1,22 @@
 # EnDjinnV
-EnDjinnV is a self-indulgent Vulkan research project and "simple" game engine. Self-indulgent because it is focused on slow-and-deliberate meditation on bleeding-edge game engine architecture: the sort of slow-and-deliberate meditation that is generally unacceptable in a live development/production environment.
+EnDjinnV is a self-indulgent rendering technology research project and "simple" game engine. Self-indulgent because it is focused on slow-and-deliberate bleeding-edge rendering technology and game engine architecture: the sort of slow-and-deliberate meditation that is generally unacceptable in a live development/production environment.
+
+!!The [LunarG Vulkan Tutorial](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html) has been completed!!
+
+![Sample Image](/Samples/renderdoc-analysis2.png)
+
+# Features
+- Vulkan initialization and basic rendering proven
+- Vulkan Debug/Validation layers
+- Renderdoc integration
+
+# Next Steps
+- Implement game engine style Camera/Scene/Lighting objects. We want to set camera transform arbitrarily, have an arbitrary number of meshes (and draw calls), and at least very basic lighting.
+- Classes were made to be responsible for cleaning up GPU memory (i.e.: Djn::Gfx::Buffer). These classes have move semantics and somewhat behave like std::unique_ptr, but more robust types are already available via `vulkan.hpp`, so we should probably switch to those to reduce duplication and cruft.
 
 # Goals
-The long-term goal of EnDjinnV is to be a full-fledged Vulkan-only game engine. VR support is intended, and probably Android support for the Oculus Quest.
 
-## Short Term Goals
+## Short Term
 - A "scene" architecture to manage and allow serialization of renderable objects and cameras
 - VR-integration
 - An asset import pipeline (i.e.: When running a built game, these things should already be compiled)
@@ -13,20 +25,18 @@ The long-term goal of EnDjinnV is to be a full-fledged Vulkan-only game engine. 
   - any sort of audio or other necessary graphics
 - Profiling tool and other debug integrations
   - Something? for CPU performance and memory profiling
-  - RenderDoc for GPU performance
   
-## Long Term Goals
+## Long Term
+- full-featured Vulkan-only game engine
 - RayTracing
+- VR
+- Android/Oculus Quest support
   
 # NOT-Goals (AKA: high-level libraries)
 EnDjinnV does not currently intend to pioneer in some areas. To narrow scope down to extreme-performance graphics and game development, the following libraries are either in use or will be:
 - GLM (which even seems to have SIMD support its latest versions)
 - Boost (specifically, no one should ever waste time developing a x-plat stack trace utility)
 - FMOD or Wwise (or some other audio utility)
-
-# Status
-Vulkan is being developed (mostly) following the LunarG Vulkan tutorial [here](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html).
-Platform-specific handling is tucked away in the Platform class or the XPlat utility namespace.
 
 # Getting Started
 The project is built with Visual Studio 2019.
