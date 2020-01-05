@@ -11,6 +11,7 @@ EnDjinnV is a self-indulgent research project deliberately focused on bleeding-e
 - Renderdoc integration
 
 # Next Steps
+- Handle buffer resizing when the window changes.
 - Get camera rotation functional.
 - Implement game engine style Scene/Lighting objects. We want to set camera transform arbitrarily, have an arbitrary number of meshes (and draw calls), and at least very basic lighting.
 - Classes were made to be responsible for cleaning up GPU memory (i.e.: Djn::Gfx::Buffer). These classes have move semantics and somewhat behave like std::unique_ptr, but more robust types are already available via `vulkan.hpp`, so we should probably switch to those to reduce duplication and cruft.
