@@ -11,17 +11,17 @@ namespace Djn
     {
     public:
         Camera();
-        Camera(vec3 pos);
-        vec3 getPosition() const { return transform.Position(); }
-        quat getRotation() const { return transform.Rotation(); }
+        Camera(float fovy, float zNear, float zFar);
+        vec3 getPosition() const { return transform.getPosition(); }
+        void setPosition(vec3 position) { transform.setPosition(position); }
+        quat getRotation() const { return transform.getRotation(); }
+        void setRotation(quat rotation) { transform.setRotation(rotation); }
         float getFovY() const { return fovy; }
-        float getAspect() const { return aspect; }
         float getNearClip() const { return nearClip; }
         float getFarClip() const { return farClip; }
     private:
         Transform transform;
         float fovy;
-        float aspect;
         float nearClip;
         float farClip;
     };

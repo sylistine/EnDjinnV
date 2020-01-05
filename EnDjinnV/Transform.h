@@ -8,13 +8,12 @@ namespace Djn
     public:
         Transform();
         Transform(vec3 pos, quat rot);
-        // Getters/Setters.
-        vec3 Position() const { return position; }
-        void SetPosition(vec3 position) { this->position = position; }
-        quat Rotation() const { return rotation; }
-        void SetRotation(quat rotation) { this->rotation = rotation; }
-        vec3 Scale() const { return scale; }
-        void SetScale(vec3 scale) { this->scale = scale; }
+        vec3 getPosition() const { return position; }
+        void setPosition(vec3 position) { this->position = position; }
+        quat getRotation() const { return rotation; }
+        void setRotation(quat rotation) { this->rotation = rotation; }
+        vec3 getScale() const { return scale; }
+        void setScale(vec3 scale) { this->scale = scale; }
     private:
         vec3 position;
         quat rotation;

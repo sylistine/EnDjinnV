@@ -6,13 +6,17 @@
 #include <vector>
 
 #include "SceneObject.h"
+#include "Camera.h"
 
-
-class Scene
+namespace Djn
 {
-public:
-    Scene();
-private:
-    std::vector<SceneObject> sceneObjects;
-};
-
+    class Scene
+    {
+    public:
+        Scene();
+        void update();
+    private:
+        Camera mainCamera;
+        std::vector<SceneObject> sceneObjects;
+    };
+}

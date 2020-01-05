@@ -9,11 +9,7 @@
 #include "VulkanUtil.h"
 #include "MathUtil.h"
 
-#include "Camera.h"
-#include "Vertex.h"
-
-std::vector<Djn::Gfx::Vertex> GetDefaultVertices();
-std::vector<Djn::Gfx::Vertex> CubeMesh();
+#include "Scene.h"
 
 void CreateDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback);
 void DestroyDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback);
@@ -48,7 +44,6 @@ int main()
     } catch (std::exception & e) {
         std::cout << e.what() << std::endl;
         if (platformHandler) {
-            platformHandler->destroySurface();
             delete platformHandler;
         }
         return -1;
@@ -62,15 +57,8 @@ int main()
     try {
         platformHandler->createSurface(vkInstance);
         Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
-        Djn::Camera mainCamera(vec3(2.0f, 2.0f, 3.0f));
-        Gfx::Manager::SetCameraParameters(
-            mainCamera.getFovY(),
-            mainCamera.getNearClip(),
-            mainCamera.getFarClip(),
-            mainCamera.getPosition(),
-            mainCamera.getRotation());
-        Gfx::Manager::SetVertices(CubeMesh());
-        Gfx::Manager::SetupPipeline();
+
+        Scene scene;
 
         while (!platformHandler->getIsQuitting()) {
             if (platformHandler->update()) {
@@ -81,6 +69,7 @@ int main()
                 }
                 continue;
             }
+            scene.update();
             Gfx::Manager::Draw();
         }
     } catch (std::exception & e) {
@@ -182,66 +171,4 @@ void DestroyDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messen
     if (ddrc != NULL) {
         ddrc(instance, callback, NULL);
     }
-}
-
-std::vector<Djn::Gfx::Vertex> GetDefaultVertices()
-{
-    std::vector<Djn::Gfx::Vertex> vertexList;
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(-1.f, 0.f, 0.f, 1.f), vec4(1.f, 0.f, 0.f, 1.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.0f, 1.f, 0.f, 1.f), vec4(0.f, 1.f, 0.f, 1.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(1.f, 0.f, 0.f, 1.f), vec4(0.f, 0.f, 1.f, 1.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(1.f, 0.f, 0.f, 1.f), vec4(0.f, 0.f, 1.f, 1.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(0.0f, 1.f, 0.f, 1.f), vec4(0.f, 1.f, 0.f, 1.f)));
-    vertexList.push_back(Djn::Gfx::Vertex(vec4(-1.f, 0.f, 0.f, 1.f), vec4(1.f, 0.f, 0.f, 1.f)));
-    return vertexList;
-}
-
-
-static std::vector<Djn::Gfx::Vertex> CubeMesh()
-{
-    std::vector<Djn::Gfx::Vertex> verts{
-        // red face
-        {vec4(-1, -1, 1, 1), vec4(1.f, 0.f, 0.f, 1)},
-        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
-        {vec4(1, -1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
-        {vec4(1, -1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
-        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
-        {vec4(1, 1, 1, 1), vec4(1.f, 0.f, 0.f, 1.f)},
-        // green face
-        {vec4(-1, -1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
-        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
-        {vec4(-1, 1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
-        {vec4(-1, 1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
-        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
-        {vec4(1, 1, -1, 1), vec4(0.f, 1.f, 0.f, 1.f)},
-        // blue face
-        {vec4(-1, 1, 1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, -1, 1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, 1, -1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, 1, -1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, -1, 1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, -1, -1, 1), vec4(0.f, 0.f, 1.f, 1.f)},
-        // yellow face
-        {vec4(1, 1, 1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
-        {vec4(1, 1, -1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
-        {vec4(1, -1, 1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
-        {vec4(1, -1, 1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
-        {vec4(1, 1, -1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
-        {vec4(1, -1, -1, 1), vec4(1.f, 1.f, 0.f, 1.f)},
-        // magenta face
-        {vec4(1, 1, 1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
-        {vec4(1, 1, -1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
-        {vec4(1, 1, -1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, 1, 1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
-        {vec4(-1, 1, -1, 1), vec4(1.f, 0.f, 1.f, 1.f)},
-        // cyan face
-        {vec4(1, -1, 1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
-        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
-        {vec4(-1, -1, 1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
-        {vec4(-1, -1, 1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
-        {vec4(1, -1, -1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
-        {vec4(-1, -1, -1, 1), vec4(0.f, 1.f, 1.f, 1.f)},
-    };
-    return verts;
 }

@@ -309,6 +309,7 @@ void Manager::TempSetCameraParameters(float fovy, float nearClip, float farClip,
     viewProjectionBuffer = Buffer(
         device, vk::BufferUsageFlagBits::eUniformBuffer,
         mvpc, sizeof(mvpc));
+
     vk::DescriptorBufferInfo descBufferInfo;
     descBufferInfo.buffer = viewProjectionBuffer.Get();
     descBufferInfo.offset = 0;
