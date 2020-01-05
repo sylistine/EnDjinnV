@@ -57,7 +57,7 @@ int main()
 #endif
     try {
         platformHandler->createSurface(vkInstance);
-        Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
+        auto gfxManager = Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
 
         Time time;
         Scene scene;
@@ -68,12 +68,13 @@ int main()
                     // TODO: Trigger resize of swapchain and frame buffers.
                     // VkSurfaceKHR updates window surface size automatically,
                     // so we do not need to pass them from the platform.
+                    gfxManager->resize();
                 }
                 continue;
             }
             time.tick();
             scene.update(time.deltaTime());
-            Gfx::Manager::Draw();
+            gfxManager->draw();
         }
     } catch (std::exception & e) {
         std::cout << e.what() << std::endl;

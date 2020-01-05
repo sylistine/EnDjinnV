@@ -2,6 +2,9 @@
 #include "Scene.h"
 #include "Gfx.h"
 
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 using namespace Djn;
 
 std::vector<Djn::Gfx::Vertex> GetDefaultVertices();
@@ -9,15 +12,23 @@ std::vector<Djn::Gfx::Vertex> CubeMesh();
 
 Scene::Scene() : mainCamera(45.0f, 0.1f, 100.0f)
 {
-    mainCamera.setPosition(vec3(2.0f, 2.0f, 5.0f));
-    Gfx::Manager::SetCameraParameters(
+    auto gfxManager = Gfx::Manager::GetInstance();
+    if (gfxManager == NULL) throw Exception("Graphics has not been initialized.");
+
+    mainCamera.setPosition(vec3(2.0f, 2.0f, 10.0f));
+    //float theta = -90.0f;
+    //vec3 axis(0.0f, 1.0f, 0.0f);
+    //quat cameraRotation = quat();
+    //cameraRotation = glm::rotate(cameraRotation, theta, axis);
+    //mainCamera.setRotation(cameraRotation);
+    gfxManager->tempSetCameraParameters(
         mainCamera.getFovY(),
         mainCamera.getNearClip(),
         mainCamera.getFarClip(),
         mainCamera.getPosition(),
         mainCamera.getRotation());
-    Gfx::Manager::SetVertices(CubeMesh());
-    Gfx::Manager::SetupPipeline();
+    gfxManager->setPrimaryVertexBuffer(CubeMesh());
+    gfxManager->tempPipelineStuff();
 }
 
 void Scene::update(float deltaTime) {

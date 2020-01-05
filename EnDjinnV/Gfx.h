@@ -80,18 +80,15 @@ namespace Djn::Gfx
     class Manager
     {
     public:
-        static void Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
+        static Manager* Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface);
         static void Terminate();
-        static void SetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot);
-        static void SetVertices(std::vector<Vertex> vertices);
-        static void SetupPipeline();
-        static void Draw();
+        static Manager* GetInstance();
     private:
-        static Manager* gfxInstance;
+        static Manager* instance;
         Manager(vk::Instance vkInstance, vk::SurfaceKHR surface);
         ~Manager();
 
-        vk::Instance instance;
+        vk::Instance vulkan;
         PhysicalDevice primaryGPU;
         Device device;
         CommandPool gfxCommandPool;
@@ -114,16 +111,16 @@ namespace Djn::Gfx
         vk::PipelineLayout primaryPipelineLayout;
         vk::PipelineCache pipelineCache;
         vk::Pipeline primaryPipeline;
-
+    public:
         // Creates render pass, frame buffers, and descriptor sets.
-        void SetupPrimaryRenderPass();
+        void setupPrimaryRenderPass();
         // Updates the VBO.
-        void SetPrimaryVertexBuffer(std::vector<Vertex> vertices);
+        void setPrimaryVertexBuffer(std::vector<Vertex> vertices);
         // Updates the view/projection buffer. Requires SetupPrimaryRenderPass to be called.
-        void TempSetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot);
-
+        void tempSetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot);
+        void resize();
         // Constructs a render pipeline. Requires renderpass, framebuffer...
-        void TempPipelineStuff();
-        void TempCommandBuffer();
+        void tempPipelineStuff();
+        void draw();
     };
 }

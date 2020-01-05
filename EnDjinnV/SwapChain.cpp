@@ -109,6 +109,7 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format forma
         }
     }
 
+
     inited = true;
 }
 

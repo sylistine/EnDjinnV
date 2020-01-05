@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include "Shader.h"
 
@@ -14,58 +15,40 @@ using namespace Djn::Gfx;
 const vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
 
 
-// Begin Graphics Manager Statics
-void Manager::Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface)
+/// Static
+Manager* Manager::Initialize(vk::Instance vkInstance, vk::SurfaceKHR surface)
 {
-    if (gfxInstance != NULL) throw Exception("Gfx is already initialized.");
-    gfxInstance = new Manager(vkInstance, surface);
+    if (instance != NULL) throw Exception("Manager is already initialized.");
+    instance = new Manager(vkInstance, surface);
+    return instance;
 }
 
 
+/// Static
 void Manager::Terminate()
 {
-    if (gfxInstance == NULL) {
+    if (instance == NULL) {
         std::cout << "Graphics has either not been initialized or has already been deleted." << std::endl;
     }
-    delete gfxInstance;
+    delete instance;
 }
 
 
-void Manager::SetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot)
+/// Static
+Manager* Manager::GetInstance()
 {
-    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
-    gfxInstance->TempSetCameraParameters(fovy, nearClip, farClip, pos, rot);
+    if (instance == NULL) throw Exception("Manager has not been initialized.");
+    return instance;
 }
 
 
-void Manager::SetVertices(std::vector<Vertex> vertices)
-{
-    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
-    gfxInstance->SetPrimaryVertexBuffer(vertices);
-}
-
-
-void Manager::SetupPipeline()
-{
-    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
-    gfxInstance->TempPipelineStuff();
-}
-
-
-void Manager::Draw()
-{
-    if (gfxInstance == NULL) throw Exception("Graphics has not been initialized.");
-    gfxInstance->TempCommandBuffer();
-}
-
-
-Manager* Manager::gfxInstance = NULL;
-// End Graphics Manager Statics
+/// Static
+Manager* Manager::instance = NULL;
 
 
 Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
-    instance(vkInstance),
-    primaryGPU(instance.enumeratePhysicalDevices()[0], surface),
+    vulkan(vkInstance),
+    primaryGPU(vulkan.enumeratePhysicalDevices()[0], surface),
     device(primaryGPU)
 {
     vk::Result result;
@@ -119,7 +102,7 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
     pipelineShaderStages.push_back(fsPipelineShaderStageCI);
 
-    SetupPrimaryRenderPass();
+    setupPrimaryRenderPass();
 }
 
 
@@ -144,7 +127,7 @@ Manager::~Manager()
 }
 
 
-void Manager::SetupPrimaryRenderPass()
+void Manager::setupPrimaryRenderPass()
 {
     auto d = device.GetLogical();
 
@@ -276,7 +259,7 @@ void Manager::SetupPrimaryRenderPass()
 }
 
 
-void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
+void Manager::setPrimaryVertexBuffer(std::vector<Vertex> vertices)
 {
     vertexBuffer = Buffer(
         device, vk::BufferUsageFlagBits::eVertexBuffer,
@@ -289,11 +272,11 @@ void Manager::SetPrimaryVertexBuffer(std::vector<Vertex> vertices)
 }
 
 
-void Manager::TempSetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot)
+void Manager::tempSetCameraParameters(float fovy, float nearClip, float farClip, vec3 pos, quat rot)
 {
     mat4 model = glm::mat4(1.0f);
     mat4 I = glm::mat4(1);
-    mat4 view = glm::translate(I, -pos);
+    mat4 view = glm::translate(I, -pos); // *glm::toMat4(rot);
 
     auto extents = primaryGPU.GetSurfaceCapabilities().currentExtent;
     mat4 proj = glm::perspective(fovy, (float)extents.width / (float)extents.height, nearClip, farClip);
@@ -327,8 +310,14 @@ void Manager::TempSetCameraParameters(float fovy, float nearClip, float farClip,
 }
 
 
+void Manager::resize()
+{
+
+}
+
+
 /// This should be called after the primary render pass and buffers (frame, vert, uniform, etc) have been created.
-void Manager::TempPipelineStuff()
+void Manager::tempPipelineStuff()
 {
     auto d = device.GetLogical();
 
@@ -356,7 +345,7 @@ void Manager::TempPipelineStuff()
 
     vk::PipelineRasterizationStateCreateInfo rs;
     rs.polygonMode = vk::PolygonMode::eFill;
-    rs.cullMode = vk::CullModeFlagBits::eNone;
+    rs.cullMode = vk::CullModeFlagBits::eBack;
     rs.frontFace = vk::FrontFace::eClockwise;
     rs.depthClampEnable = false;
     rs.rasterizerDiscardEnable = false;
@@ -451,7 +440,7 @@ void Manager::TempPipelineStuff()
 }
 
 
-void Manager::TempCommandBuffer()
+void Manager::draw()
 {
     auto d = device.GetLogical();
     // Command buffer etc
