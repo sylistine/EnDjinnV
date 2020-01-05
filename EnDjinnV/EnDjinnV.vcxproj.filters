@@ -75,6 +75,9 @@
     <ClCompile Include="RenderPass.cpp">
       <Filter>Source Files\Gfx</Filter>
     </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Platform.h">
@@ -138,6 +141,9 @@
       <Filter>Header Files\Gfx</Filter>
     </ClInclude>
     <ClInclude Include="MathUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

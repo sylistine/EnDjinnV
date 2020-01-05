@@ -14,7 +14,7 @@ namespace Djn
     {
     public:
         Scene();
-        void update();
+        void update(float deltaTime);
     private:
         Camera mainCamera;
         std::vector<SceneObject> sceneObjects;

@@ -9,6 +9,7 @@
 #include "VulkanUtil.h"
 #include "MathUtil.h"
 
+#include "Time.h"
 #include "Scene.h"
 
 void CreateDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messenger, VkDebugReportCallbackEXT& callback);
@@ -58,6 +59,7 @@ int main()
         platformHandler->createSurface(vkInstance);
         Gfx::Manager::Initialize(vkInstance, platformHandler->getRenderSurface());
 
+        Time time;
         Scene scene;
 
         while (!platformHandler->getIsQuitting()) {
@@ -69,7 +71,8 @@ int main()
                 }
                 continue;
             }
-            scene.update();
+            time.tick();
+            scene.update(time.deltaTime());
             Gfx::Manager::Draw();
         }
     } catch (std::exception & e) {

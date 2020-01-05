@@ -20,8 +20,8 @@ Scene::Scene() : mainCamera(45.0f, 0.1f, 100.0f)
     Gfx::Manager::SetupPipeline();
 }
 
-void Scene::update() {
-    // Update camera pos, vertex count
+void Scene::update(float deltaTime) {
+    std::cout << deltaTime << std::endl;
 }
 
 std::vector<Djn::Gfx::Vertex> GetDefaultVertices()
