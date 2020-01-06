@@ -4,9 +4,10 @@ EnDjinnV is a self-indulgent research project deliberately focused on bleeding-e
 !!The [LunarG Vulkan Tutorial](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html) has been completed!!
 
 ![Sample Image](/Samples/renderdoc-analysis3.png)
+![Uniform Time Buffer Sample](/Samples/TimeBufferUsageSample.gif)
 
 # Features
-- Vulkan initialization and basic rendering proven
+- Simple Vulkan Rendering. Game engine architecture beginnings.
 - Vulkan Debug/Validation layers
 - Renderdoc integration
 
@@ -23,7 +24,7 @@ EnDjinnV is a self-indulgent research project deliberately focused on bleeding-e
 - VR-integration
 - An asset import pipeline (i.e.: When running a built game, these things should already be compiled)
   - GLTF format 3d models
-  - GLSL shaders
+  - A better GLSL shaders
   - any sort of audio or other necessary graphics
 - CPU performance and memory profiling instrumentation
   
