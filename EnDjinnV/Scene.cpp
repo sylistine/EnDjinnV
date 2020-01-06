@@ -32,7 +32,6 @@ Scene::Scene() : mainCamera(45.0f, 0.1f, 100.0f)
 }
 
 void Scene::update(float deltaTime) {
-    std::cout << deltaTime << std::endl;
 }
 
 std::vector<Djn::Gfx::Vertex> GetDefaultVertices()

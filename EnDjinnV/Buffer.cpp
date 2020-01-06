@@ -9,9 +9,11 @@ Buffer::Buffer(
     const Device& device,
     vk::BufferUsageFlags usage,
     void* data,
-    VkDeviceSize size) :
+    vk::DeviceSize size) :
     d(device.GetLogical())
 {
+    std::cout << "Constructing buffer." << std::endl;
+
     if (size == 0) throw Exception("Creating an empty buffer is not allowed.");
 
     // Create buffer.
@@ -28,8 +30,10 @@ Buffer::Buffer(
     vk::MemoryRequirements memoryReqs;
     d.getBufferMemoryRequirements(buffer, &memoryReqs);
 
+    memoryAllocationSize = memoryReqs.size;
+
     vk::MemoryAllocateInfo memoryAI;
-    memoryAI.allocationSize = memoryReqs.size;
+    memoryAI.allocationSize = memoryAllocationSize;
     memoryAI.memoryTypeIndex = UINT32_MAX;
     if (!device.GetMemoryTypeIndex(
         memoryReqs.memoryTypeBits,
@@ -44,13 +48,7 @@ Buffer::Buffer(
         d.destroyBuffer(buffer, NULL);
     }
 
-    // Map, Copy, and Unmap
-    auto vertexDataDst = d.mapMemory(
-        memory,
-        vk::DeviceSize(0), memoryAI.allocationSize,
-        vk::MemoryMapFlags(0));
-    memcpy(vertexDataDst, data, size);
-    d.unmapMemory(memory);
+    updateData(data, size);
 
     // Bind buffer and memory.
     // TODO: Can we bind buffer and memory before mapping and copying the data?
@@ -63,6 +61,23 @@ Buffer::Buffer(
 Buffer::~Buffer()
 {
     FreeMemory();
+}
+
+
+void Buffer::updateData(void* data, vk::DeviceSize size)
+{
+    std::cout << "Updating buffer data." << std::endl;
+    vk::DeviceSize offset(0);
+    vk::MemoryMapFlags flags(0);
+
+    std::cout << memoryAllocationSize << std::endl;
+    auto vertexDataDst = d.mapMemory(
+        memory,
+        offset,
+        memoryAllocationSize,
+        flags);
+    memcpy(vertexDataDst, data, size);
+    d.unmapMemory(memory);
 }
 
 

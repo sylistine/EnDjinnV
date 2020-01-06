@@ -12,6 +12,15 @@
 
 namespace Djn::Gfx
 {
+    typedef struct MVPBuffer
+    {
+        mat4 clip;
+        mat4 proj;
+        mat4 view;
+        mat4 model;
+        mat4 mvp;
+    } MVPBuffer;
+
     static VkInstance CreateVulkanInstance(const char* appName)
     {
         VkApplicationInfo appInfo = {};
@@ -99,11 +108,14 @@ namespace Djn::Gfx
         std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStages;
 
         // Primary render pass steps.
+        float timeData;
+        Buffer timeBuffer;
         vk::RenderPass primaryRenderPass; // draws to the main output surface.
         vk::Framebuffer* primaryFramebuffer; // framebuffers for primary swapchain.
         uint32_t vertexCount;
         Buffer vertexBuffer; // buffer for just the one set of verts.
         vk::VertexInputBindingDescription viBindingDesc;
+        MVPBuffer viewProjectionData;
         Buffer viewProjectionBuffer; // buffer for the main camera view/projection matrices.
         vk::DescriptorPool primaryDescriptorPool;
         vk::DescriptorSet primaryDescriptorSet;
@@ -121,6 +133,8 @@ namespace Djn::Gfx
         void resize();
         // Constructs a render pipeline. Requires renderpass, framebuffer...
         void tempPipelineStuff();
-        void draw();
+        void draw(float deltaTime);
+    private:
+        void updateTimeBuffer(float deltaTime);
     };
 }

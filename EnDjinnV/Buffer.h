@@ -28,6 +28,7 @@ namespace Djn::Gfx
             this->d = other.d;
             this->buffer = other.buffer;
             this->memory = other.memory;
+            this->memoryAllocationSize = other.memoryAllocationSize;
             this->inited = true;
             other.inited = false;
         }
@@ -38,17 +39,20 @@ namespace Djn::Gfx
                 this->d = other.d;
                 this->buffer = other.buffer;
                 this->memory = other.memory;
+                this->memoryAllocationSize = other.memoryAllocationSize;
                 this->inited = true;
                 other.inited = false;
             }
             return *this;
         }
         vk::Buffer Get() const { return buffer; }
+        void updateData(void* data, vk::DeviceSize size);
     private:
         bool inited = false;
         vk::Device d;
         vk::Buffer buffer;
         vk::DeviceMemory memory;
+        vk::DeviceSize memoryAllocationSize;
         void FreeMemory();
     };
 }

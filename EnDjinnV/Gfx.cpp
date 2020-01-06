@@ -102,6 +102,19 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
     pipelineShaderStages.push_back(fsPipelineShaderStageCI);
 
+    std::cout << "Making time buffer." << std::endl;
+    timeBuffer = Buffer(
+        device,
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        &timeData,
+        sizeof(timeData));
+    std::cout << "Making MVP Buffer" << std::endl;
+    viewProjectionBuffer = Buffer(
+        device,
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        &viewProjectionData,
+        sizeof(viewProjectionData));
+
     setupPrimaryRenderPass();
 }
 
@@ -287,16 +300,18 @@ void Manager::tempSetCameraParameters(float fovy, float nearClip, float farClip,
         0.0f, 0.0f, 0.5f, 0.0f,
         0.0f, 0.0f, 0.5f, 1.0f);
 
-    // Unmultiplied MVPC
-    mat4 mvpc[] = { clip, proj, view, model, clip * proj * view * model };
-    viewProjectionBuffer = Buffer(
-        device, vk::BufferUsageFlagBits::eUniformBuffer,
-        mvpc, sizeof(mvpc));
+    viewProjectionData.clip = clip;
+    viewProjectionData.model = model;
+    viewProjectionData.view = view;
+    viewProjectionData.proj = proj;
+    viewProjectionData.mvp = clip * proj * view * model;
+    //viewProjectionBuffer = Buffer(device, vk::BufferUsageFlagBits::eVertexBuffer, &viewProjectionData, sizeof(viewProjectionData));
+    viewProjectionBuffer.updateData(&viewProjectionData, sizeof(viewProjectionData));
 
     vk::DescriptorBufferInfo descBufferInfo;
     descBufferInfo.buffer = viewProjectionBuffer.Get();
     descBufferInfo.offset = 0;
-    descBufferInfo.range = sizeof(mvpc);
+    descBufferInfo.range = sizeof(viewProjectionData);
 
     vk::WriteDescriptorSet writeInfo;
     writeInfo.dstSet = primaryDescriptorSet;
@@ -440,7 +455,13 @@ void Manager::tempPipelineStuff()
 }
 
 
-void Manager::draw()
+void Manager::updateTimeBuffer(float deltaTime)
+{
+
+}
+
+
+void Manager::draw(float deltaTime)
 {
     auto d = device.GetLogical();
     // Command buffer etc
