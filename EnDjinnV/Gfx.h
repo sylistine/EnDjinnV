@@ -10,6 +10,8 @@
 #include "Buffer.h"
 #include "RenderPass.h"
 
+#include "Time.h"
+
 namespace Djn::Gfx
 {
     typedef struct MVPBuffer
@@ -133,8 +135,8 @@ namespace Djn::Gfx
         void resize();
         // Constructs a render pipeline. Requires renderpass, framebuffer...
         void tempPipelineStuff();
-        void draw(float deltaTime);
+        void draw(Djn::Time& time);
     private:
-        void updateTimeBuffer(float deltaTime);
+        void updateTimeBuffer(float timeSinceStart);
     };
 }

@@ -12,8 +12,6 @@ Buffer::Buffer(
     vk::DeviceSize size) :
     d(device.GetLogical())
 {
-    std::cout << "Constructing buffer." << std::endl;
-
     if (size == 0) throw Exception("Creating an empty buffer is not allowed.");
 
     // Create buffer.
@@ -66,11 +64,9 @@ Buffer::~Buffer()
 
 void Buffer::updateData(void* data, vk::DeviceSize size)
 {
-    std::cout << "Updating buffer data." << std::endl;
     vk::DeviceSize offset(0);
     vk::MemoryMapFlags flags(0);
 
-    std::cout << memoryAllocationSize << std::endl;
     auto vertexDataDst = d.mapMemory(
         memory,
         offset,

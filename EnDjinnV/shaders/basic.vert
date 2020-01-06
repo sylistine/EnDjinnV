@@ -3,7 +3,11 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (std140, binding = 0) uniform cameraValues {
+layout (std140, binding = 0) uniform timeValues {
+    float timeSinceStart;
+} time;
+
+layout (std140, binding = 1) uniform cameraValues {
     mat4 clip;
     mat4 proj;
     mat4 view;
@@ -22,11 +26,9 @@ layout (location = 0) out vec4 outColor;
 
 void main() {
     outColor = color;
-    mat4 m = flip(camera.model);
-    mat4 v = flip(camera.view);
-    mat4 p = flip(camera.proj);
-    mat4 c = flip(camera.clip);
-    mat4 cpvm = c * p * v * m;
-    mat4 mvpc = m * v * p * c;
-    gl_Position = cpvm * pos;
+    float t = time.timeSinceStart;
+    vec4 p = pos;
+    p.xy += vec2(sin(t), cos(t)) * 2.0;
+    vec4 oPos = camera.mvp * p;
+    gl_Position = oPos;
 }

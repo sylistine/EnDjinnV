@@ -74,7 +74,7 @@ int main()
             }
             time.tick();
             scene.update(time.deltaTime());
-            gfxManager->draw(time.deltaTime());
+            gfxManager->draw(time);
         }
     } catch (std::exception & e) {
         std::cout << e.what() << std::endl;

@@ -15,7 +15,7 @@ Scene::Scene() : mainCamera(45.0f, 0.1f, 100.0f)
     auto gfxManager = Gfx::Manager::GetInstance();
     if (gfxManager == NULL) throw Exception("Graphics has not been initialized.");
 
-    mainCamera.setPosition(vec3(2.0f, 2.0f, 10.0f));
+    mainCamera.setPosition(vec3(0.0f, 0.0f, 10.0f));
     //float theta = -90.0f;
     //vec3 axis(0.0f, 1.0f, 0.0f);
     //quat cameraRotation = quat();

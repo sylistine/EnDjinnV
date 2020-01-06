@@ -29,6 +29,7 @@ void Manager::Terminate()
 {
     if (instance == NULL) {
         std::cout << "Graphics has either not been initialized or has already been deleted." << std::endl;
+        return;
     }
     delete instance;
 }
@@ -102,13 +103,11 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     fsPipelineShaderStageCI.pSpecializationInfo = NULL;
     pipelineShaderStages.push_back(fsPipelineShaderStageCI);
 
-    std::cout << "Making time buffer." << std::endl;
     timeBuffer = Buffer(
         device,
         vk::BufferUsageFlagBits::eUniformBuffer,
         &timeData,
         sizeof(timeData));
-    std::cout << "Making MVP Buffer" << std::endl;
     viewProjectionBuffer = Buffer(
         device,
         vk::BufferUsageFlagBits::eUniformBuffer,
@@ -234,27 +233,34 @@ void Manager::setupPrimaryRenderPass()
     // These prewarm various buffers that our shaders will reference later.
     // Presently, the only buffer we use is the view/projection buffer.
     // In the future, this will include textures sampled by the fragment shader, time keeping, etc.
-    vk::DescriptorPoolSize descPoolSize;
-    descPoolSize.type = vk::DescriptorType::eUniformBuffer;
-    descPoolSize.descriptorCount = 1;
+    vk::DescriptorPoolSize descPoolSize[2];
+    descPoolSize[0].type = vk::DescriptorType::eUniformBuffer;
+    descPoolSize[0].descriptorCount = 1;
+    descPoolSize[1].type = vk::DescriptorType::eUniformBuffer;
+    descPoolSize[1].descriptorCount = 1;
 
     vk::DescriptorPoolCreateInfo descPoolCI;
-    //descPoolCI.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-    descPoolCI.maxSets = 1;
-    descPoolCI.poolSizeCount = 1;
-    descPoolCI.pPoolSizes = &descPoolSize;
+    descPoolCI.maxSets = 2;
+    descPoolCI.poolSizeCount = 2;
+    descPoolCI.pPoolSizes = descPoolSize;
     result = d.createDescriptorPool(&descPoolCI, NULL, &primaryDescriptorPool);
 
-    vk::DescriptorSetLayoutBinding descSetBindings;
-    descSetBindings.binding = 0;
-    descSetBindings.descriptorType = vk::DescriptorType::eUniformBuffer;
-    descSetBindings.descriptorCount = 1;
-    descSetBindings.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    descSetBindings.pImmutableSamplers = NULL;
+    // Zero is time, One is MVP
+    vk::DescriptorSetLayoutBinding descSetBindings[2];
+    descSetBindings[0].binding = 0;
+    descSetBindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+    descSetBindings[0].descriptorCount = 1;
+    descSetBindings[0].stageFlags = vk::ShaderStageFlagBits::eVertex;
+    descSetBindings[0].pImmutableSamplers = NULL;
+    descSetBindings[1].binding = 1;
+    descSetBindings[1].descriptorType = vk::DescriptorType::eUniformBuffer;
+    descSetBindings[1].descriptorCount = 1;
+    descSetBindings[1].stageFlags = vk::ShaderStageFlagBits::eVertex;
+    descSetBindings[1].pImmutableSamplers = NULL;
 
     vk::DescriptorSetLayoutCreateInfo descSetLayoutCI;
-    descSetLayoutCI.bindingCount = 1;
-    descSetLayoutCI.pBindings = &descSetBindings;
+    descSetLayoutCI.bindingCount = 2;
+    descSetLayoutCI.pBindings = descSetBindings;
     d.createDescriptorSetLayout(&descSetLayoutCI, NULL, &primaryDescriptorSetLayout);
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCI;
@@ -319,7 +325,7 @@ void Manager::tempSetCameraParameters(float fovy, float nearClip, float farClip,
     writeInfo.descriptorType = vk::DescriptorType::eUniformBuffer;
     writeInfo.pBufferInfo = &descBufferInfo;
     writeInfo.dstArrayElement = 0;
-    writeInfo.dstBinding = 0;
+    writeInfo.dstBinding = 1;
 
     device.GetLogical().updateDescriptorSets(1, &writeInfo, 0, NULL);
 }
@@ -455,14 +461,31 @@ void Manager::tempPipelineStuff()
 }
 
 
-void Manager::updateTimeBuffer(float deltaTime)
+void Manager::updateTimeBuffer(float timeSinceStart)
 {
+    timeBuffer.updateData(&timeSinceStart, sizeof(timeSinceStart));
 
+    vk::DescriptorBufferInfo descBufferInfo;
+    descBufferInfo.buffer = timeBuffer.Get();
+    descBufferInfo.offset = 0;
+    descBufferInfo.range = sizeof(timeSinceStart);
+
+    vk::WriteDescriptorSet writeInfo;
+    writeInfo.dstSet = primaryDescriptorSet;
+    writeInfo.descriptorCount = 1;
+    writeInfo.descriptorType = vk::DescriptorType::eUniformBuffer;
+    writeInfo.pBufferInfo = &descBufferInfo;
+    writeInfo.dstArrayElement = 0;
+    writeInfo.dstBinding = 0;
+
+    device.GetLogical().updateDescriptorSets(1, &writeInfo, 0, NULL);
 }
 
 
-void Manager::draw(float deltaTime)
+void Manager::draw(Djn::Time& time)
 {
+    updateTimeBuffer(time.totalTime());
+
     auto d = device.GetLogical();
     // Command buffer etc
     vk::ClearValue clearValues[2];
