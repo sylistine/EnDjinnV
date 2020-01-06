@@ -1,5 +1,5 @@
 # EnDjinnV
-EnDjinnV is a self-indulgent research project deliberately focused on bleeding-edge rendering technology and game engine architecture: the sort of slow-and-deliberate focus that is generally unacceptable in a live development/production environment.
+EnDjinnV is a self-indulgent research project focused on bleeding-edge rendering technology and game engine architecture: the sort of slow-and-deliberate focus that is generally unacceptable in a live development/production environment.
 
 !!The [LunarG Vulkan Tutorial](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html) has been completed!!
 
@@ -49,10 +49,10 @@ Necessary envvars:
 - BOOST_DIR - location of Boost version 1.71...
 
 # Conventions
-- Wrap everything in the Djn namespace.
-- Prefer throwing to error checking and return codes (use Djn::Exception, which provides a stacktrace).
-- This means any allocations (CPU or GPU) must be contained in self-managing classes or smart pointers.
-- Fields are camelCase, while functions and methods are CamelCase.
+- Wrap everything in a namespace. The base namespace for this project is `Djn`
+- Prefer throwing to error checking and return codes (Djn::Exception provides a stacktrace).
+- Consequently, dynamic memory allocation must be self-managing (read: it cleans itself up on exceptions).
+- Types are CamelCase while members (functions and fields) are camelCase, regardless of privacy.
 - Indent 4 spaces
 - Allman for classes and functions, K&R internals:
 ```
