@@ -1,5 +1,5 @@
 # EnDjinnV
-EnDjinnV is a self-indulgent research project focused on bleeding-edge rendering technology and game engine architecture: the sort of slow-and-deliberate focus that is generally unacceptable in a live development/production environment.
+EnDjinnV is a self-indulgent research project focused on bleeding-edge rendering technology and game engine architecture.
 
 !!The [LunarG Vulkan Tutorial](https://vulkan.lunarg.com/doc/sdk/1.1.114.0/windows/tutorial/html/index.html) has been completed!!
 
