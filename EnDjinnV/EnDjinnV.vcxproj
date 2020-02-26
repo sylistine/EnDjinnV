@@ -166,7 +166,6 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="Device.cpp" />
-    <ClCompile Include="Exception.cpp" />
     <ClCompile Include="Gfx.cpp" />
     <ClCompile Include="EnDjinnV.cpp" />
     <ClCompile Include="PhysicalDevice.cpp" />

@@ -3,34 +3,11 @@
 
 using namespace Djn::Gfx;
 
-Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format format,
+Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format format, vk::Extent2D imageExtent,
     vk::SurfaceCapabilitiesKHR surfaceCapabilities,
     std::vector<uint32_t> queueFamilyIndices) :
-    vkDevice(device)
+    device(device)
 {
-    // Do swapchain setup.
-
-    VkExtent2D swapchainExtent;
-    // width and height are either both 0xFFFFFFFF, or both not 0xFFFFFFFF.
-    if (surfaceCapabilities.currentExtent.width == 0xFFFFFFFF) {
-        // If the surface size is undefined, the size is set to
-        // the size of the images requested.
-        swapchainExtent = surfaceCapabilities.currentExtent;
-        if (swapchainExtent.width < surfaceCapabilities.minImageExtent.width) {
-            swapchainExtent.width = surfaceCapabilities.minImageExtent.width;
-        } else if (swapchainExtent.width > surfaceCapabilities.maxImageExtent.width) {
-            swapchainExtent.width = surfaceCapabilities.maxImageExtent.width;
-        }
-
-        if (swapchainExtent.height < surfaceCapabilities.minImageExtent.height) {
-            swapchainExtent.height = surfaceCapabilities.minImageExtent.height;
-        } else if (swapchainExtent.height > surfaceCapabilities.maxImageExtent.height) {
-            swapchainExtent.height = surfaceCapabilities.maxImageExtent.height;
-        }
-    } else {
-        // If the surface size is defined, the swap chain size must match
-        swapchainExtent = surfaceCapabilities.currentExtent;
-    }
 
     vk::SurfaceTransformFlagBitsKHR surfaceTransformFlagBits;
     if (surfaceCapabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity) {
@@ -54,14 +31,12 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format forma
     }
     if (compositeAlphaIdx == UINT32_MAX) throw Exception("Unable to select correct composite alpha type.");
 
-    // create swapchain
     vk::SwapchainKHR oldSwapchain;
-    vk::SwapchainCreateInfoKHR swapchainCI;
     swapchainCI.surface = surface;
     swapchainCI.minImageCount = surfaceCapabilities.minImageCount;
     swapchainCI.imageFormat = format;
     swapchainCI.imageColorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
-    swapchainCI.imageExtent = swapchainExtent;
+    swapchainCI.imageExtent = imageExtent;
     swapchainCI.imageArrayLayers = 1;
     swapchainCI.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
     swapchainCI.preTransform = surfaceTransformFlagBits;
@@ -79,55 +54,43 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format forma
         swapchainCI.queueFamilyIndexCount = 0;
         swapchainCI.pQueueFamilyIndices = NULL;
     }
-
-    vk::Result result = vkDevice.createSwapchainKHR(&swapchainCI, NULL, &vkSwapchain);
-    if (result != vk::Result::eSuccess) throw Exception("Unable to create swapchain");
-
-    swapchainImages = vkDevice.getSwapchainImagesKHR(vkSwapchain);
-    swapchainImageViews.resize(swapchainImages.size());
-    for (auto i = 0u; i < swapchainImages.size(); i++) {
-        vk::ImageViewCreateInfo swapchainImageViewCI;
-        swapchainImageViewCI.image = swapchainImages[i];
-        swapchainImageViewCI.viewType = vk::ImageViewType::e2D;
-        swapchainImageViewCI.format = format;
-        swapchainImageViewCI.components.r = vk::ComponentSwizzle::eR;
-        swapchainImageViewCI.components.g = vk::ComponentSwizzle::eG;
-        swapchainImageViewCI.components.b = vk::ComponentSwizzle::eB;
-        swapchainImageViewCI.components.a = vk::ComponentSwizzle::eA;
-        swapchainImageViewCI.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-        swapchainImageViewCI.subresourceRange.baseMipLevel = 0;
-        swapchainImageViewCI.subresourceRange.levelCount = 1;
-        swapchainImageViewCI.subresourceRange.baseArrayLayer = 0;
-        swapchainImageViewCI.subresourceRange.layerCount = 1;
-        result = vkDevice.createImageView(&swapchainImageViewCI, NULL, &swapchainImageViews[i]);
-        if (result != vk::Result::eSuccess) {
-            for (auto j = i; j > 0; j--) {
-                vkDevice.destroyImageView(swapchainImageViews[i - 1]);
-            }
-            vkDevice.destroySwapchainKHR(vkSwapchain);
-            throw Exception("Unable to create views to swapchain images.");
-        }
-    }
-
-
-    inited = true;
 }
 
 
 Swapchain::~Swapchain()
 {
-    FreeDeviceMemory();
+    destroySwapchain();
 }
 
 
-void Swapchain::FreeDeviceMemory()
+void Swapchain::resize(vk::Extent2D newSize)
 {
-    if (!inited) return;
+    destroySwapchain();
+    swapchainCI.imageExtent = newSize;
+    createSwapchain();
+}
 
-    std::cout << "Deleting swapchain." << std::endl;
-    for (auto i = 0u; i < swapchainImages.size(); i++) {
-        vkDestroyImageView(vkDevice, swapchainImageViews[i], NULL);
+
+void Swapchain::createSwapchain()
+{
+    vk::Result result = device.createSwapchainKHR(&swapchainCI, NULL, &swapchain);
+    if (result != vk::Result::eSuccess) throw Exception("Unable to create swapchain");
+
+    swapchainImages = device.getSwapchainImagesKHR(swapchain);
+
+    viewHelper = ViewHelper(device, swapchainCI.imageFormat);
+    try {
+        viewHelper.createViews(swapchainImages);
+    } catch (Exception & e) {
+        viewHelper.destroyViews();
+        device.destroySwapchainKHR(swapchain);
+        throw e;
     }
-    vkDestroySwapchainKHR(vkDevice, vkSwapchain, NULL);
-    inited = false;
+}
+
+
+void Swapchain::destroySwapchain()
+{
+    viewHelper.destroyViews();
+    vkDestroySwapchainKHR(device, swapchain, NULL);
 }
