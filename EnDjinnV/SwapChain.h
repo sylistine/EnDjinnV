@@ -15,9 +15,8 @@ namespace Djn::Gfx
         vk::Format format{ vk::Format::eUndefined };
         std::vector<vk::ImageView> views{};
     public:
-        ViewHelper() {}
+        ViewHelper() = default;
         ViewHelper(vk::Device device, vk::Format format) : device{ device }, format{ format } {}
-        ~ViewHelper() { destroyViews(); }
         vk::ImageView operator[](int i) const
         {
             return views[i];
@@ -63,7 +62,6 @@ namespace Djn::Gfx
         std::vector<vk::Image> swapchainImages{};
         ViewHelper viewHelper{};
     public:
-
         Swapchain() = default;
         Swapchain(
             vk::Device device,
@@ -72,7 +70,6 @@ namespace Djn::Gfx
             vk::Extent2D extent,
             vk::SurfaceCapabilitiesKHR surfaceCapabilities,
             std::vector<uint32_t> queueFamilyIndices);
-        ~Swapchain();
         vk::SwapchainKHR GetSwapchainKHR() const { return swapchain; }
         size_t GetImageCount() const { return swapchainImages.size(); }
         vk::Image GetImage(uint32_t idx) const

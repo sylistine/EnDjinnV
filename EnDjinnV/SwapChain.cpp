@@ -61,12 +61,6 @@ Swapchain::Swapchain(
 }
 
 
-Swapchain::~Swapchain()
-{
-    destroySwapchain();
-}
-
-
 void Swapchain::resize(vk::Extent2D newSize)
 {
     destroySwapchain();
