@@ -10,8 +10,14 @@ namespace Djn::Gfx
 {
     class Buffer
     {
+    private:
+        bool inited = false;
+        vk::Device d{};
+        vk::Buffer buffer{};
+        vk::DeviceMemory memory{};
+        vk::DeviceSize memoryAllocationSize{};
     public:
-        Buffer() {}
+        Buffer() = default;
         Buffer(
             const Device& device,
             vk::BufferUsageFlags usage,
@@ -48,11 +54,6 @@ namespace Djn::Gfx
         vk::Buffer Get() const { return buffer; }
         void updateData(void* data, vk::DeviceSize size);
     private:
-        bool inited = false;
-        vk::Device d;
-        vk::Buffer buffer;
-        vk::DeviceMemory memory;
-        vk::DeviceSize memoryAllocationSize;
         void FreeMemory();
     };
 }

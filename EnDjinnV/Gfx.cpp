@@ -59,13 +59,37 @@ Manager::Manager(vk::Instance vkInstance, vk::SurfaceKHR surface) :
     gfxCommandPool = CommandPool(device.GetLogical(), gfxQueueFamilyIdx, 1);
 
     // Create default swapchain and depth texture.
+    // Get swapchain size.
+    auto surfaceCapabilities = primaryGPU.GetSurfaceCapabilities();
+    vk::Extent2D swapchainExtent;
+    // width and height are either both 0xFFFFFFFF, or both not 0xFFFFFFFF.
+    if (surfaceCapabilities.currentExtent.width == 0xFFFFFFFF) {
+        // If the surface size is undefined, the size is set to
+        // the size of the images requested.
+        swapchainExtent = surfaceCapabilities.currentExtent;
+        if (swapchainExtent.width < surfaceCapabilities.minImageExtent.width) {
+            swapchainExtent.width = surfaceCapabilities.minImageExtent.width;
+        } else if (swapchainExtent.width > surfaceCapabilities.maxImageExtent.width) {
+            swapchainExtent.width = surfaceCapabilities.maxImageExtent.width;
+        }
+
+        if (swapchainExtent.height < surfaceCapabilities.minImageExtent.height) {
+            swapchainExtent.height = surfaceCapabilities.minImageExtent.height;
+        } else if (swapchainExtent.height > surfaceCapabilities.maxImageExtent.height) {
+            swapchainExtent.height = surfaceCapabilities.maxImageExtent.height;
+        }
+    } else {
+        // If the surface size is defined, the swap chain size must match
+        swapchainExtent = surfaceCapabilities.currentExtent;
+    }
     std::vector<uint32_t> queueFamilyIndices;
     if (gfxQueueFamilyIdx != presentQueueFamilyIdx) {
         queueFamilyIndices.push_back(gfxQueueFamilyIdx);
         queueFamilyIndices.push_back(presentQueueFamilyIdx);
     }
-    swapchain = Swapchain(device.GetLogical(), surface, primaryGPU.GetOutputFormat(),
-        primaryGPU.GetSurfaceCapabilities(), queueFamilyIndices);
+    swapchain = Swapchain(device.GetLogical(), surface, primaryGPU.GetOutputFormat(), swapchainExtent,
+        surfaceCapabilities, queueFamilyIndices);
+    swapchain.createSwapchain();
 
     // create depth texture
     depthTexture = new DepthTexture(device, primaryGPU.GetSurfaceCapabilities().currentExtent);
@@ -136,6 +160,7 @@ Manager::~Manager()
     d.destroyShaderModule(fragmentShaderModule);
     d.destroyShaderModule(vertexShaderModule);
     delete depthTexture;
+    swapchain.destroySwapchain();
 }
 
 
