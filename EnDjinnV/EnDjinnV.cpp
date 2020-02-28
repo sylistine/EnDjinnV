@@ -17,7 +17,6 @@ void DestroyDebugCallbacks(VkInstance instance, VkDebugUtilsMessengerEXT& messen
 
 auto appName = "EnDjinn v0.1";
 
-
 int main()
 {
 #if defined(_WIN32) && defined(NDEBUG)

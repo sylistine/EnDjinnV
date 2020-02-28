@@ -10,7 +10,7 @@ Buffer::Buffer(
     vk::BufferUsageFlags usage,
     void* data,
     vk::DeviceSize size) :
-    d(device.GetLogical())
+    d{ device.GetLogical() }
 {
     if (size == 0) throw Exception("Creating an empty buffer is not allowed.");
 

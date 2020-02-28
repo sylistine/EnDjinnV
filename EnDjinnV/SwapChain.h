@@ -8,51 +8,61 @@
 
 namespace Djn::Gfx
 {
+    class ViewHelper
+    {
+    private:
+        vk::Device device{};
+        vk::Format format{ vk::Format::eUndefined };
+        std::vector<vk::ImageView> views{};
+    public:
+        ViewHelper() {}
+        ViewHelper(vk::Device device, vk::Format format) : device{ device }, format{ format } {}
+        ~ViewHelper() { destroyViews(); }
+        vk::ImageView operator[](int i) const
+        {
+            return views[i];
+        }
+        void createViews(std::vector<vk::Image> images)
+        {
+            destroyViews();
+            views.resize(images.size());
+            for (auto i = 0; i < images.size(); i++) {
+                vk::ImageViewCreateInfo swapchainImageViewCI;
+                swapchainImageViewCI.image = images[i];
+                swapchainImageViewCI.viewType = vk::ImageViewType::e2D;
+                swapchainImageViewCI.format = format;
+                swapchainImageViewCI.components.r = vk::ComponentSwizzle::eR;
+                swapchainImageViewCI.components.g = vk::ComponentSwizzle::eG;
+                swapchainImageViewCI.components.b = vk::ComponentSwizzle::eB;
+                swapchainImageViewCI.components.a = vk::ComponentSwizzle::eA;
+                swapchainImageViewCI.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+                swapchainImageViewCI.subresourceRange.baseMipLevel = 0;
+                swapchainImageViewCI.subresourceRange.levelCount = 1;
+                swapchainImageViewCI.subresourceRange.baseArrayLayer = 0;
+                swapchainImageViewCI.subresourceRange.layerCount = 1;
+                vk::Result result = device.createImageView(&swapchainImageViewCI, NULL, &views[i]);
+                if (result != vk::Result::eSuccess) {
+                    throw Exception("Unable to create swapchain image view.");
+                }
+            }
+        }
+        void destroyViews() noexcept
+        {
+            for (auto i = views.size(); i > 0; i--) {
+                device.destroyImageView(views[i - 1]);
+            }
+        }
+    };
+
     class Swapchain
     {
+    private:
+        vk::Device device{};
+        vk::SwapchainCreateInfoKHR swapchainCI{};
+        vk::SwapchainKHR swapchain{};
+        std::vector<vk::Image> swapchainImages{};
+        ViewHelper viewHelper{};
     public:
-        class ViewHelper
-        {
-        public:
-            ViewHelper() {}
-            ViewHelper(vk::Device device, vk::Format format) : device(device), format(format) {}
-            ~ViewHelper() { destroyViews(); }
-            vk::ImageView operator[](int i) const {
-                return views[i];
-            }
-            void createViews(std::vector<vk::Image> images) {
-                destroyViews();
-                views.resize(images.size());
-                for (auto i = 0; i < images.size(); i++) {
-                    vk::ImageViewCreateInfo swapchainImageViewCI;
-                    swapchainImageViewCI.image = images[i];
-                    swapchainImageViewCI.viewType = vk::ImageViewType::e2D;
-                    swapchainImageViewCI.format = format;
-                    swapchainImageViewCI.components.r = vk::ComponentSwizzle::eR;
-                    swapchainImageViewCI.components.g = vk::ComponentSwizzle::eG;
-                    swapchainImageViewCI.components.b = vk::ComponentSwizzle::eB;
-                    swapchainImageViewCI.components.a = vk::ComponentSwizzle::eA;
-                    swapchainImageViewCI.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-                    swapchainImageViewCI.subresourceRange.baseMipLevel = 0;
-                    swapchainImageViewCI.subresourceRange.levelCount = 1;
-                    swapchainImageViewCI.subresourceRange.baseArrayLayer = 0;
-                    swapchainImageViewCI.subresourceRange.layerCount = 1;
-                    vk::Result result = device.createImageView(&swapchainImageViewCI, NULL, &views[i]);
-                    if (result != vk::Result::eSuccess) {
-                        throw Exception("Unable to create swapchain image view.");
-                    }
-                }
-            }
-            void destroyViews() noexcept {
-                for (auto i = views.size(); i > 0; i--) {
-                    device.destroyImageView(views[i - 1]);
-                }
-            }
-        private:
-            vk::Device device;
-            vk::Format format;
-            std::vector<vk::ImageView> views;
-        };
 
         Swapchain() = default;
         Swapchain(
@@ -78,11 +88,5 @@ namespace Djn::Gfx
         void resize(vk::Extent2D newSize);
         void createSwapchain();
         void destroySwapchain();
-    private:
-        vk::Device device;
-        vk::SwapchainKHR swapchain;
-        std::vector<vk::Image> swapchainImages;
-        ViewHelper viewHelper;
-        vk::SwapchainCreateInfoKHR swapchainCI;
     };
 }

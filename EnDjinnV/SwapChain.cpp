@@ -3,7 +3,11 @@
 
 using namespace Djn::Gfx;
 
-Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, vk::Format format, vk::Extent2D imageExtent,
+Swapchain::Swapchain(
+    vk::Device device,
+    vk::SurfaceKHR surface,
+    vk::Format format,
+    vk::Extent2D imageExtent,
     vk::SurfaceCapabilitiesKHR surfaceCapabilities,
     std::vector<uint32_t> queueFamilyIndices) :
     device(device)
